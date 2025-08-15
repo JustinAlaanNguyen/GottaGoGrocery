@@ -2,6 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
+  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
+  "/home": "pages/home.js",
   "/search-recipe": "pages/search-recipe.js",
-  "/home": "pages/home.js"
+  "/features": "pages/features.js"
 }

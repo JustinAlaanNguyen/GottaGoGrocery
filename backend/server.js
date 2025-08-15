@@ -4,6 +4,7 @@ const cors = require("cors");
 const db = require("./src/config/db");
 const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
+const customRecipeRoutes = require("./src/routes/customRecipeRoutes");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/custom-recipes", customRecipeRoutes);
 
 app.get("/", async (req, res) => {
   try {

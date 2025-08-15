@@ -163,22 +163,10 @@ export default function UserHome() {
           mt={4}
         >
           {[
-            {
-              label: "Create a new recipe",
-              route: "/create-recipe",
-            },
-            {
-              label: "View saved recipes",
-              route: "/saved-recipes",
-            },
-            {
-              label: "Search grocery items",
-              route: "/search-recipe", // ✅ This is the correct route
-            },
-            {
-              label: "Manage account settings",
-              route: "/account/settings",
-            },
+            { label: "Create a custom recipe", route: "/custom-recipes" },
+            { label: "View saved recipes", route: "/saved-recipes" },
+            { label: "Search grocery items", route: "/search-recipe" },
+            { label: "Manage account settings", route: "/account/settings" },
           ].map((action, i) => (
             <motion.div
               key={i}
@@ -224,40 +212,41 @@ export default function UserHome() {
         </MotionBox>
 
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={10}>
-          {[customCount, savedCount, customCount + savedCount].map(
-            (value, idx) => {
-              const labels = [
-                value > 0
-                  ? `You’ve created ${value} custom recipe${
-                      value > 1 ? "s" : ""
+          <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
+            <CardBody textAlign="center">
+              <Text fontSize="xl" color="#3c5b3a">
+                {customCount > 0
+                  ? `You’ve created ${customCount} custom recipe${
+                      customCount > 1 ? "s" : ""
                     }!`
-                  : "You have not created any recipes yet. Get started!",
-                value > 0
-                  ? `You’ve saved ${value} recipe${value > 1 ? "s" : ""}!`
-                  : "You have not saved any recipes yet. Start saving your favorites!",
-                value > 0
-                  ? `You’ve cooked ${value} recipe${
-                      value > 1 ? "s" : ""
+                  : "You have not created any recipes yet. Get started!"}
+              </Text>
+            </CardBody>
+          </MotionCard>
+
+          <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
+            <CardBody textAlign="center">
+              <Text fontSize="xl" color="#3c5b3a">
+                {savedCount > 0
+                  ? `You’ve saved ${savedCount} recipe${
+                      savedCount > 1 ? "s" : ""
+                    }!`
+                  : "You have not saved any recipes yet. Start saving your favorites!"}
+              </Text>
+            </CardBody>
+          </MotionCard>
+
+          <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
+            <CardBody textAlign="center">
+              <Text fontSize="xl" color="#3c5b3a">
+                {customCount + savedCount > 0
+                  ? `You’ve cooked ${customCount + savedCount} recipe${
+                      customCount + savedCount > 1 ? "s" : ""
                     } so far!`
-                  : "Start cooking to see your progress here!",
-              ];
-              return (
-                <MotionCard
-                  key={idx}
-                  {...fadeInUp}
-                  bg="white"
-                  shadow="md"
-                  borderRadius="xl"
-                >
-                  <CardBody textAlign="center">
-                    <Text fontSize="xl" color="#3c5b3a">
-                      {labels[idx]}
-                    </Text>
-                  </CardBody>
-                </MotionCard>
-              );
-            }
-          )}
+                  : "Start cooking to see your progress here!"}
+              </Text>
+            </CardBody>
+          </MotionCard>
         </SimpleGrid>
 
         {/* Recent Activity */}

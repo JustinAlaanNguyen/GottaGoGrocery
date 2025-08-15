@@ -1,40 +1,54 @@
+// backend/controllers/userController.js
+
 const db = require("../config/db");
 
 exports.getUserHome = async (req, res) => {
   const userId = req.params.id;
 
   try {
-    const [[user]] = await db.query("SELECT username FROM user WHERE id = ?", [userId]);
+    // Get username
+    const [[user]] = await db.query("SELECT username FROM user WHERE id = ?", [
+      userId,
+    ]);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // For demo, last login is static or retrieved from a separate table/column
+    // Last login (static or can be fetched from DB if tracked)
     const lastLogin = "July 25, 2025 at 9:42 AM";
 
-    const [[savedCountRow]] = await db.query("SELECT COUNT(*) AS count FROM savedrecipe WHERE userId = ?", [userId]);
-    const [[customCountRow]] = await db.query("SELECT COUNT(*) AS count FROM customrecipe WHERE userId = ?", [userId]);
+    // Counts
+    const [[savedCountRow]] = await db.query(
+      "SELECT COUNT(*) AS count FROM savedrecipe WHERE userId = ?",
+      [userId]
+    );
+    const [[customCountRow]] = await db.query(
+      "SELECT COUNT(*) AS count FROM customrecipe WHERE userId = ?",
+      [userId]
+    );
 
+    // Fetch recent saved recipes
     const [recentSaved] = await db.query(
-      "SELECT id, recipeLink, dateSaved FROM savedrecipe WHERE userId = ? ORDER BY dateSaved DESC LIMIT 3",
-      [userId]
-    );
-    const [recentCustom] = await db.query(
-      "SELECT id, title, created_at FROM customrecipe WHERE userId = ? ORDER BY created_at DESC LIMIT 3",
+      `SELECT id, recipeLink, dateSaved AS activityDate, 'saved' AS type
+       FROM savedrecipe
+       WHERE userId = ?
+       ORDER BY dateSaved DESC
+       LIMIT 5`,
       [userId]
     );
 
-    // Combine both for recent activity (simple merge)
-    const recent = [
-      ...recentSaved.map((r) => ({
-        id: r.id,
-        recipeLink: r.recipeLink,
-        dateSaved: r.dateSaved,
-      })),
-      ...recentCustom.map((c) => ({
-        id: c.id,
-        title: c.title,
-        created_at: c.created_at,
-      })),
-    ].slice(0, 5);
+    // Fetch recent custom recipes
+    const [recentCustom] = await db.query(
+      `SELECT id, title, created_at AS activityDate, 'custom' AS type
+       FROM customrecipe
+       WHERE userId = ?
+       ORDER BY created_at DESC
+       LIMIT 5`,
+      [userId]
+    );
+
+    // Merge & sort by date (newest first)
+    const recent = [...recentSaved, ...recentCustom]
+      .sort((a, b) => new Date(b.activityDate) - new Date(a.activityDate))
+      .slice(0, 5);
 
     res.json({
       username: user.username,
@@ -44,7 +58,7 @@ exports.getUserHome = async (req, res) => {
       recent,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching user home:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
