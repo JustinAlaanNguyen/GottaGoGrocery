@@ -62,3 +62,36 @@ exports.getUserHome = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+exports.getUserRecipes = async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    // Fetch custom recipes
+    const [customRecipes] = await db.query(
+      `SELECT id, title, recipeDescription, serving, created_at
+       FROM customrecipe
+       WHERE userId = ?
+       ORDER BY created_at DESC`,
+      [userId]
+    );
+
+    // Fetch saved recipes
+    const [savedRecipes] = await db.query(
+      `SELECT id, recipeLink, starRating, dateSaved
+       FROM savedrecipe
+       WHERE userId = ?
+       ORDER BY dateSaved DESC`,
+      [userId]
+    );
+
+    res.json({
+      customRecipes,
+      savedRecipes,
+    });
+  } catch (err) {
+    console.error("Error fetching user recipes:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

@@ -42,7 +42,7 @@ const Signup = (): React.ReactElement => {
   const [veggies, setVeggies] = React.useState<React.ReactElement[]>([]);
 
   React.useEffect(() => {
-    const elements = [...Array(20)].map((_, i) => {
+    const elements = [...Array(30)].map((_, i) => {
       const top = `${Math.random() * 90}%`;
       const left = `${Math.random() * 90}%`;
       const duration = Math.random() * 4 + 3;
@@ -60,7 +60,7 @@ const Signup = (): React.ReactElement => {
           zIndex={0}
           style={{ transform: `rotate(${rotation}deg)` }}
           animate={{
-            y: [0, -15, 0, 15, 0],
+            y: [0, 15, 0, 15, 0],
             rotate: [
               rotation,
               rotation + 20,
@@ -236,7 +236,9 @@ const Signup = (): React.ReactElement => {
       />
 
       {/* Floating Vegetable Emojis */}
-      {veggies}
+      <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
+        {veggies}
+      </Box>
 
       <motion.div
         style={{

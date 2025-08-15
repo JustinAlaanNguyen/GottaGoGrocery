@@ -46,7 +46,7 @@ type RecentRecipe = {
   id: number;
   title?: string;
   recipeLink?: string;
-  dateSaved?: string;
+  activityDate?: string;
   created_at?: string;
 };
 
@@ -190,7 +190,34 @@ export default function UserHome() {
                 <motion.div
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  style={{ position: "absolute", top: 15, right: 20 }}
+                  style={{ position: "absolute", top: 15, right: 13 }}
+                >
+                  <FaStar color="#FFD700" size="18" />
+                </motion.div>
+              )}
+              {i === 1 && (
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  style={{ position: "absolute", top: 15, right: 25 }}
+                >
+                  <FaStar color="#FFD700" size="18" />
+                </motion.div>
+              )}
+              {i === 2 && (
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  style={{ position: "absolute", top: 15, right: 15 }}
+                >
+                  <FaStar color="#FFD700" size="18" />
+                </motion.div>
+              )}
+              {i === 3 && (
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  style={{ position: "absolute", top: 15, right: 5 }}
                 >
                   <FaStar color="#FFD700" size="18" />
                 </motion.div>
@@ -281,7 +308,9 @@ export default function UserHome() {
                     </Text>
                   )}
                   <Text fontSize="sm" color="gray.500">
-                    {item.dateSaved || item.created_at || "No date available"}
+                    {item.activityDate
+                      ? new Date(item.activityDate).toLocaleString()
+                      : "No date available"}
                   </Text>
                 </CardBody>
               </MotionCard>

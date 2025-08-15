@@ -35,8 +35,8 @@ export default function SearchRecipe() {
 
   const cutleryEmojis = ["🍴", "🥄", "🔪"];
 
-  const sparkles = useMemo(() => {
-    return [...Array(15)].map((_, i) => {
+  const cutlery = useMemo(() => {
+    return [...Array(30)].map((_, i) => {
       const top = `${Math.random() * 80 + 5}%`;
       const left = `${Math.random() * 90 + 5}%`;
       const duration = Math.random() * 4 + 3;
@@ -105,7 +105,9 @@ export default function SearchRecipe() {
 
   return (
     <Box minH="100vh" p={6} bg="#fbfaf8" position="relative" overflow="hidden">
-      {sparkles}
+      <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
+        {cutlery}
+      </Box>
       <Navbar />
 
       <Heading mb={6} textAlign="center" color="#2d452c">

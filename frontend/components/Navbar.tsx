@@ -5,7 +5,7 @@ import {
   Box,
   Flex,
   HStack,
-  Link,
+  Link as ChakraLink,
   Button,
   IconButton,
   useDisclosure,
@@ -15,7 +15,6 @@ import {
   DrawerCloseButton,
   DrawerBody,
   VStack,
-  Text,
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { motion } from "framer-motion";
@@ -29,12 +28,20 @@ function isLoggedIn() {
   if (typeof window === "undefined") return false;
   return !!localStorage.getItem("token");
 }
-
 function handleLogout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-  window.location.href = "/"; // Redirect to homepage
+  window.location.href = "/";
 }
+
+// Include an icon (emoji for now) on each link
+const links = [
+  { name: "Home", href: "/home", icon: "🏠" },
+  { name: "Features", href: "/features", icon: "✨" },
+  { name: "Create Recipe", href: "/custom-recipes", icon: "➕" },
+  { name: "Saved Recipes", href: "/recipes/saved-recipes", icon: "📚" },
+  { name: "Search Recipe", href: "/search-recipe", icon: "🔍" },
+];
 
 const Navbar: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -42,20 +49,9 @@ const Navbar: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
 
-  const links = [
-    { name: "Home", href: "/home" },
-    { name: "Features", href: "/features" },
-    { name: "Saved Recipes", href: "/recipes/saved" },
-    { name: "Search for a recipe", href: "/search-recipe" },
-  ];
-
   useEffect(() => {
     setMounted(true);
     setLoggedIn(isLoggedIn());
-  }, []);
-
-  useEffect(() => {
-    setMounted(true); // Mark component as mounted (client-only)
   }, []);
 
   useEffect(() => {
@@ -64,10 +60,7 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Avoid rendering until mounted to prevent hydration mismatch
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
   return (
     <Box
@@ -78,17 +71,17 @@ const Navbar: React.FC = () => {
       top={0}
       zIndex={1000}
       boxShadow={isScrolled ? "md" : "none"}
-      transition="background 0.3s, box-shadow 0.3s"
+      transition="0.3s"
     >
       <MotionFlex
-        alignItems="center"
-        justifyContent="space-between"
+        align="center"
+        justify="space-between"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.8 }}
       >
         {/* Logo */}
-        <Link
+        <ChakraLink
           as={NextLink}
           href="/"
           fontSize={{ base: "2xl", md: "3xl" }}
@@ -97,102 +90,80 @@ const Navbar: React.FC = () => {
           _hover={{ opacity: 0.7 }}
         >
           GottaGoGrocery
-        </Link>
+        </ChakraLink>
 
-        {/* Desktop Links */}
-        <HStack as="nav" spacing={6} display={{ base: "none", md: "flex" }}>
+        {/* Desktop Buttons */}
+        <HStack spacing={4} display={{ base: "none", md: "flex" }}>
           {links.map((link) => (
-            <Link
+            <MotionButton
               key={link.name}
               as={NextLink}
               href={link.href}
-              fontSize="lg"
-              fontWeight="medium"
-              color="black"
-              _hover={{ textDecoration: "none", opacity: 0.7 }}
+              leftIcon={<span style={{ fontSize: "1.1rem" }}>{link.icon}</span>}
+              bg="white"
+              border="1px solid #cead7fff"
+              color="#2d452c"
+              _hover={{ bg: "#faeddb", textDecoration: "none" }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               {link.name}
-            </Link>
+            </MotionButton>
           ))}
+
           {loggedIn ? (
-            <>
-              <Button
-                onClick={handleLogout}
-                colorScheme="red"
-                variant="outline"
-              >
-                Sign Out
-              </Button>
-            </>
+            <Button onClick={handleLogout} colorScheme="red" variant="outline">
+              Sign Out
+            </Button>
           ) : (
             <MotionButton
               as={NextLink}
               href="/account/signin"
               bg="#3c5b3a"
               color="white"
-              fontSize="lg"
               px={6}
               py={4}
               borderRadius="full"
               _hover={{ bg: "#2d452c" }}
               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              position="relative"
-              overflow="hidden"
             >
-              <MotionBox
-                position="absolute"
-                top={0}
-                left={0}
-                w="150%"
-                h="100%"
-                bgGradient="linear(to-r, transparent, rgba(255,255,255,0.2), transparent)"
-                transform="rotate(15deg)"
-                filter="blur(6px)"
-                pointerEvents="none"
-                animate={{ x: ["-150%", "150%"] }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
               Sign In
             </MotionButton>
           )}
         </HStack>
 
-        {/* Hamburger for Mobile */}
+        {/* Hamburger icon for mobile */}
         <IconButton
           aria-label="Open menu"
           icon={<HamburgerIcon />}
           display={{ base: "flex", md: "none" }}
           onClick={onOpen}
           variant="ghost"
-          fontSize="2xl"
         />
       </MotionFlex>
 
-      {/* Mobile Drawer */}
+      {/* Mobile drawer */}
       <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
         <DrawerOverlay />
         <DrawerContent bg="white">
           <DrawerCloseButton mt={2} />
-          <DrawerBody mt={10}>
-            <VStack spacing={6} align="flex-start">
+          <DrawerBody mt={12}>
+            <VStack spacing={6} align="stretch">
               {links.map((link) => (
-                <Link
+                <Button
                   key={link.name}
                   as={NextLink}
                   href={link.href}
-                  fontSize="xl"
-                  fontWeight="medium"
-                  color="black"
+                  leftIcon={<span>{link.icon}</span>}
+                  justifyContent="flex-start"
                   onClick={onClose}
+                  variant="ghost"
+                  fontSize="xl"
                 >
                   {link.name}
-                </Link>
+                </Button>
               ))}
+
               {loggedIn ? (
                 <Button
                   onClick={() => {
@@ -200,7 +171,6 @@ const Navbar: React.FC = () => {
                     onClose();
                   }}
                   colorScheme="red"
-                  w="full"
                 >
                   Sign Out
                 </Button>
@@ -210,12 +180,7 @@ const Navbar: React.FC = () => {
                   href="/account/signin"
                   bg="#3c5b3a"
                   color="white"
-                  fontSize="xl"
-                  px={6}
-                  py={4}
-                  borderRadius="full"
                   _hover={{ bg: "#2d452c" }}
-                  w="full"
                   onClick={onClose}
                 >
                   Sign In

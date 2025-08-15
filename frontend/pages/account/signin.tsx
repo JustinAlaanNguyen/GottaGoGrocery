@@ -44,7 +44,7 @@ const SignIn = (): React.ReactElement => {
 
   // Floating fruit effect (same as sign-up page smoothness)
   React.useEffect(() => {
-    const elements = [...Array(20)].map((_, i) => {
+    const elements = [...Array(30)].map((_, i) => {
       const top = `${Math.random() * 90}%`;
       const left = `${Math.random() * 90}%`;
       const duration = Math.random() * 4 + 3; // 3–7s for variation
@@ -61,7 +61,7 @@ const SignIn = (): React.ReactElement => {
           zIndex={0}
           style={{ transform: `rotate(${rotation}deg)` }}
           animate={{
-            y: [0, -15, 0, 15, 0],
+            y: [0, 15, 0, 15, 0],
             rotate: [
               rotation,
               rotation + 20,
@@ -146,7 +146,9 @@ const SignIn = (): React.ReactElement => {
       />
 
       {/* Floating fruits */}
-      {fruits}
+      <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
+        {fruits}
+      </Box>
 
       <motion.div
         style={{
