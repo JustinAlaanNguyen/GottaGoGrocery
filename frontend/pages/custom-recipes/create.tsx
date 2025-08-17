@@ -1,3 +1,6 @@
+// to do imperial/metric switch
+// to do: add units and quantity fields
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -191,12 +194,14 @@ export default function CreateCustomRecipePage() {
         title: "Title & description required",
       });
     }
-    if (Number(serving) <= 0) {
+    const servingsNum = Number(serving);
+    if (!Number.isInteger(servingsNum) || servingsNum <= 0) {
       return toast({
         status: "warning",
-        title: "Servings must be a positive number",
+        title: "Servings must be a positive whole number",
       });
     }
+
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     if (!user.id) {
       router.push("/account/signin");
@@ -264,7 +269,26 @@ export default function CreateCustomRecipePage() {
               placeholder="Servings"
               type="number"
               value={serving}
-              onChange={(e) => setServing(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+
+                // Allow empty string (so user can clear the field)
+                if (val === "") {
+                  setServing("");
+                  return;
+                }
+
+                // Validate: only positive integers
+                if (/^\d+$/.test(val)) {
+                  setServing(val);
+                } else {
+                  toast({
+                    status: "error",
+                    title: "Servings must be a whole number",
+                    duration: 2000,
+                  });
+                }
+              }}
             />
 
             <Divider />

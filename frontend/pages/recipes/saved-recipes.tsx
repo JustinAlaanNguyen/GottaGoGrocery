@@ -15,24 +15,31 @@ import {
 import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import axios from "axios";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const MotionBox = motion(Box);
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: "easeOut" },
+  exit: { opacity: 0, y: 30 },
+  transition: { duration: 0.5 },
 };
 
-const floatingAnimation = {
-  y: [0, -10, 0, 10, 0],
+// 🔸 NEW floating animation
+const floatingEmojiAnimation = {
+  y: [0, 15, 0, 15, 0],
+  rotate: [0, 15, 0, -15, 0],
+  opacity: [0.4, 1, 0.4],
   transition: {
-    duration: 8,
+    duration: 6,
     repeat: Infinity,
     ease: "easeInOut",
   },
 };
+
+// 🔸 Emojis related to SAVED recipes/snacks
+const savedEmojis = ["📖", "👨‍🍳", "🥣", "✨", "🔥", "🥄", "🥗", "🍲"];
 
 type Recipe = {
   id: number;
@@ -44,6 +51,8 @@ type Recipe = {
 export default function SavedRecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sorted, setSorted] = useState(false);
+  const [floatingIcons, setFloatingIcons] = useState<React.ReactElement[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -52,14 +61,11 @@ export default function SavedRecipesPage() {
       router.push("/account/signin");
       return;
     }
-
     const user = JSON.parse(storedUser);
-    const userId = user.id;
-
-    const fetchData = async () => {
+    async function fetchData() {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/user/recipes/${userId}`
+          `http://localhost:5000/api/user/recipes/${user.id}`
         );
         setRecipes(res.data || []);
       } catch (err) {
@@ -67,10 +73,35 @@ export default function SavedRecipesPage() {
       } finally {
         setLoading(false);
       }
-    };
-
+    }
     fetchData();
   }, [router]);
+
+  // 🔸 Generate floating saved-food icons
+  useEffect(() => {
+    const icons = [...Array(25)].map((_, i) => {
+      const top = `${Math.random() * 90}%`;
+      const left = `${Math.random() * 90}%`;
+      const icon = savedEmojis[Math.floor(Math.random() * savedEmojis.length)];
+      const rotation = Math.random() * 360;
+
+      return (
+        <MotionBox
+          key={i}
+          position="absolute"
+          top={top}
+          left={left}
+          fontSize="26px"
+          zIndex={0}
+          style={{ transform: `rotate(${rotation}deg)` }}
+          animate={floatingEmojiAnimation}
+        >
+          {icon}
+        </MotionBox>
+      );
+    });
+    setFloatingIcons(icons);
+  }, []);
 
   if (loading) {
     return (
@@ -80,107 +111,206 @@ export default function SavedRecipesPage() {
     );
   }
 
+  const customOnly = recipes.filter((r) => r.type === "custom");
+  const savedOnly = recipes.filter((r) => r.type === "saved");
+
   return (
-    <Box bg="#fbfaf8" minH="100vh" position="relative" overflow="hidden">
+    <Box bg="#fbfaf8" minH="100vh" position="relative">
       <Navbar />
 
-      {/* Floating background blobs */}
-      <MotionBox
-        position="absolute"
-        w="350px"
-        h="350px"
-        borderRadius="full"
-        bg="#faeddb"
-        top="65%"
-        left="-5%"
-        zIndex={0}
-        animate={floatingAnimation}
-      />
-      <MotionBox
-        position="absolute"
-        w="250px"
-        h="250px"
-        borderRadius="full"
-        bg="#cead7fff"
-        top="10%"
-        left="75%"
-        zIndex={0}
-        animate={floatingAnimation}
-      />
+      {/* 🔸 Render icons behind the content */}
+      <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
+        {floatingIcons}
+      </Box>
 
-      <MotionBox
-        {...fadeInUp}
-        maxW="7xl"
-        mx="auto"
-        py={10}
-        px={6}
-        position="relative"
-        zIndex={1}
-      >
+      <Box maxW="7xl" mx="auto" py={10} px={6} position="relative" zIndex={1}>
         <Heading fontSize="4xl" mb={6} color="#2d452c">
           Your Recipes 🍽️
         </Heading>
 
+        <Button mb={6} onClick={() => setSorted((p) => !p)} bg="#cead7fff">
+          {sorted ? "See All Mixed" : "Sort Custom Recipes"}
+        </Button>
+
         {recipes.length === 0 ? (
-          <Text fontSize="lg" color="#3c5b3a">
-            You have no saved or custom recipes yet. Start creating or saving to
-            see them here!
+          <Text fontSize="lg">
+            You haven’t saved or created any recipes yet.
           </Text>
         ) : (
-          <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={8}>
-            {Array.isArray(recipes) &&
-              recipes.map((recipe, i) => (
-                <MotionBox
-                  key={recipe.id}
-                  {...fadeInUp}
-                  transition={{ delay: i * 0.05 }}
-                  bg="white"
-                  borderRadius="xl"
-                  boxShadow="md"
-                  overflow="hidden"
-                  whileHover={{ scale: 1.03 }}
-                >
-                  <Image
-                    src={
-                      recipe.image ||
-                      "https://via.placeholder.com/400x300?text=No+Image"
-                    }
-                    alt={recipe.title}
-                    w="100%"
-                    h="200px"
-                    objectFit="cover"
-                  />
-                  <Box p={4}>
-                    <Flex justify="space-between" align="center" mb={2}>
-                      <Heading fontSize="lg" color="#2d452c">
-                        {recipe.title}
-                      </Heading>
-                      <Badge
-                        colorScheme={
-                          recipe.type === "custom" ? "green" : "yellow"
-                        }
-                        borderRadius="full"
-                        px={2}
-                        py={0.5}
-                      >
-                        {recipe.type === "custom" ? "Custom" : "Saved"}
-                      </Badge>
-                    </Flex>
-                    <Button
-                      bg="#3c5b3a"
-                      color="white"
-                      size="sm"
-                      _hover={{ bg: "#2d452c" }}
-                      onClick={() => router.push(`/recipe/${recipe.id}`)}
+          <>
+            {!sorted && (
+              <SimpleGrid
+                columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                spacing={8}
+              >
+                <AnimatePresence>
+                  {recipes.map((recipe, idx) => (
+                    <MotionBox
+                      key={recipe.id}
+                      {...fadeInUp}
+                      transition={{ delay: idx * 0.05 }}
+                      bg="white"
+                      shadow="md"
+                      borderRadius="xl"
+                      whileHover={{ scale: 1.03 }}
                     >
-                      View Recipe
-                    </Button>
-                  </Box>
-                </MotionBox>
-              ))}
-          </SimpleGrid>
+                      {recipe.type === "saved" && (
+                        <Image
+                          src={
+                            recipe.image ||
+                            "https://via.placeholder.com/400x300?text=No+Image"
+                          }
+                          alt={recipe.title}
+                          w="100%"
+                          h="200px"
+                          objectFit="cover"
+                        />
+                      )}
+                      <Box p={4}>
+                        <Flex justify="space-between" mb={2}>
+                          <Heading size="md" color="#2d452c">
+                            {recipe.title}
+                          </Heading>
+                          <Badge
+                            colorScheme={
+                              recipe.type === "custom" ? "green" : "yellow"
+                            }
+                            borderRadius="full"
+                            px={3}
+                          >
+                            {recipe.type}
+                          </Badge>
+                        </Flex>
+                        <Button
+                          size="sm"
+                          bg="#3c5b3a"
+                          color="white"
+                          _hover={{ bg: "#2d452c" }}
+                          onClick={() =>
+                            router.push(`/custom-recipes/${recipe.id}`)
+                          }
+                        >
+                          View
+                        </Button>
+                      </Box>
+                    </MotionBox>
+                  ))}
+                </AnimatePresence>
+              </SimpleGrid>
+            )}
+
+            {sorted && (
+              <>
+                <Heading size="lg" mt={8} mb={4}>
+                  Custom Recipes
+                </Heading>
+                <SimpleGrid
+                  columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                  spacing={8}
+                >
+                  <AnimatePresence>
+                    {customOnly.map((r, idx) => (
+                      <MotionBox
+                        key={r.id}
+                        {...fadeInUp}
+                        transition={{ delay: idx * 0.05 }}
+                        bg="white"
+                        shadow="md"
+                        borderRadius="xl"
+                        whileHover={{ scale: 1.03 }}
+                      >
+                        <Box p={4}>
+                          <Flex justify="space-between" mb={2}>
+                            <Heading size="md" color="#2d452c">
+                              {r.title}
+                            </Heading>
+                            <Badge
+                              colorScheme="green"
+                              borderRadius="full"
+                              px={3}
+                            >
+                              Custom
+                            </Badge>
+                          </Flex>
+                          <Button
+                            size="sm"
+                            bg="#3c5b3a"
+                            color="white"
+                            _hover={{ bg: "#2d452c" }}
+                            onClick={() =>
+                              router.push(`/custom-recipes/${r.id}`)
+                            }
+                          >
+                            View
+                          </Button>
+                        </Box>
+                      </MotionBox>
+                    ))}
+                  </AnimatePresence>
+                </SimpleGrid>
+
+                <Heading size="lg" mt={12} mb={4}>
+                  Saved Recipes
+                </Heading>
+                <SimpleGrid
+                  columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                  spacing={8}
+                >
+                  <AnimatePresence>
+                    {savedOnly.map((r, idx) => (
+                      <MotionBox
+                        key={r.id}
+                        {...fadeInUp}
+                        transition={{ delay: idx * 0.05 }}
+                        bg="white"
+                        shadow="md"
+                        borderRadius="xl"
+                        whileHover={{ scale: 1.03 }}
+                      >
+                        <Image
+                          src={
+                            r.image ||
+                            "https://via.placeholder.com/400x300?text=No+Image"
+                          }
+                          alt={r.title}
+                          w="100%"
+                          h="200px"
+                          objectFit="cover"
+                        />
+                        <Box p={4}>
+                          <Flex justify="space-between" mb={2}>
+                            <Heading size="md" color="#2d452c">
+                              {r.title}
+                            </Heading>
+                            <Badge
+                              colorScheme="yellow"
+                              borderRadius="full"
+                              px={2}
+                            >
+                              Saved
+                            </Badge>
+                          </Flex>
+                          <Button
+                            size="sm"
+                            bg="#3c5b3a"
+                            color="white"
+                            _hover={{ bg: "#2d452c" }}
+                            onClick={() =>
+                              router.push(`/custom-recipes/${r.id}`)
+                            }
+                          >
+                            View
+                          </Button>
+                        </Box>
+                      </MotionBox>
+                    ))}
+                  </AnimatePresence>
+                </SimpleGrid>
+              </>
+            )}
+          </>
         )}
-      </MotionBox>
+      </Box>
     </Box>
   );
 }

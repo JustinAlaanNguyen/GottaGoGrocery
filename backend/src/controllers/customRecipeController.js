@@ -22,8 +22,8 @@ exports.createCustomRecipe = async (req, res) => {
   try {
     // Insert recipe
     const [recipeResult] = await conn.query(
-      "INSERT INTO customrecipe (userId, title, recipeDescription, serving) VALUES (?, ?, ?, ?)",
-      [userId, title, recipeDescription, serving]
+      "INSERT INTO customrecipe (userId, title, recipeDescription, serving, notes) VALUES (?, ?, ?, ?, ?)",
+      [userId, title, recipeDescription, serving, notes || null]
     );
     const custRecipId = recipeResult.insertId;
 
@@ -44,11 +44,12 @@ exports.createCustomRecipe = async (req, res) => {
     }
 
     // Optional: Store notes in recipeDescription or create a separate notes table
+    // Update notes in its own column
     if (notes) {
-      await conn.query(
-        "UPDATE customrecipe SET recipeDescription = CONCAT(IFNULL(recipeDescription,''), '\nNotes: ', ?) WHERE id = ?",
-        [notes, custRecipId]
-      );
+      await conn.query("UPDATE customrecipe SET notes = ? WHERE id = ?", [
+        notes,
+        custRecipId,
+      ]);
     }
 
     await conn.commit();
@@ -75,6 +76,59 @@ exports.getRecentCustomRecipes = async (req, res) => {
     res.json(rows);
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getCustomRecipeById = async (req, res) => {
+  const recipeId = req.params.id;
+  try {
+    const [[recipe]] = await db.query(
+      "SELECT * FROM customrecipe WHERE id = ?",
+      [recipeId]
+    );
+    if (!recipe) return res.status(404).json({ message: "Not found" });
+
+    const [ingredients] = await db.query(
+      "SELECT ingredient, quantity FROM customrecipeingredient WHERE custRecipId = ?",
+      [recipeId]
+    );
+    const [steps] = await db.query(
+      "SELECT stepNumber, description FROM customrecipestep WHERE custRecipId = ? ORDER BY stepNumber ASC",
+      [recipeId]
+    );
+
+    res.json({
+      title: recipe.title,
+      recipeDescription: recipe.recipeDescription,
+      serving: recipe.serving,
+      ingredients,
+      steps,
+      notes: recipe.notes,
+    });
+  } catch (err) {
+    console.error("Fetch customRecipe:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.updateCustomRecipe = async (req, res) => {
+  const recipeId = req.params.id;
+  const { title, recipeDescription, serving } = req.body;
+
+  try {
+    const [result] = await db.query(
+      "UPDATE customrecipe SET title = ?, recipeDescription = ?, serving = ? WHERE id = ?",
+      [title, recipeDescription, serving, recipeId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    res.json({ message: "Recipe updated successfully" });
+  } catch (err) {
+    console.error("Error updating recipe:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

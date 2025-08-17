@@ -63,33 +63,39 @@ exports.getUserHome = async (req, res) => {
   }
 };
 
-
 exports.getUserRecipes = async (req, res) => {
   const userId = req.params.id;
 
   try {
     // Fetch custom recipes
     const [customRecipes] = await db.query(
-      `SELECT id, title, recipeDescription, serving, created_at
-       FROM customrecipe
-       WHERE userId = ?
-       ORDER BY created_at DESC`,
+      `SELECT id, title, created_at FROM customrecipe WHERE userId = ? ORDER BY created_at DESC`,
       [userId]
     );
 
     // Fetch saved recipes
     const [savedRecipes] = await db.query(
-      `SELECT id, recipeLink, starRating, dateSaved
-       FROM savedrecipe
-       WHERE userId = ?
-       ORDER BY dateSaved DESC`,
+      `SELECT id, recipeLink, starRating, dateSaved FROM savedrecipe WHERE userId = ? ORDER BY dateSaved DESC`,
       [userId]
     );
 
-    res.json({
-      customRecipes,
-      savedRecipes,
-    });
+    // Merge into a single result array so frontend can loop over it
+    const recipes = [
+      ...customRecipes.map((r) => ({
+        id: r.id,
+        title: r.title,
+        type: "custom",
+        image: null, // you could later fetch an image column if you store one
+      })),
+      ...savedRecipes.map((r) => ({
+        id: r.id,
+        title: r.recipeLink, // OR parse from link
+        type: "saved",
+        image: null,
+      })),
+    ];
+
+    res.json(recipes);
   } catch (err) {
     console.error("Error fetching user recipes:", err);
     res.status(500).json({ message: "Server error" });
