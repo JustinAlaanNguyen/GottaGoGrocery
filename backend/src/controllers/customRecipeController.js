@@ -111,11 +111,10 @@ exports.getCustomRecipeById = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
 exports.updateCustomRecipe = async (req, res) => {
   const recipeId = req.params.id;
-  const { title, recipeDescription, serving, ingredients, steps, notes } = req.body;
+  const { title, recipeDescription, serving, ingredients, steps, notes } =
+    req.body;
 
   console.log("🔹 Incoming update request:", {
     recipeId,
@@ -137,7 +136,6 @@ exports.updateCustomRecipe = async (req, res) => {
       "UPDATE customrecipe SET title = ?, recipeDescription = ?, serving = ?, notes = ? WHERE id = ?",
       [title, recipeDescription, serving, notes || null, recipeId]
     );
-    console.log("   Recipe update result:", result);
 
     if (result.affectedRows === 0) {
       await conn.rollback();
@@ -151,20 +149,20 @@ exports.updateCustomRecipe = async (req, res) => {
       "SELECT id FROM customrecipeingredient WHERE custRecipId = ?",
       [recipeId]
     );
-    const incomingIngIds = (ingredients || []).filter(i => i.id).map(i => i.id);
-    const existingIngIds = existingIngredients.map(i => i.id);
-
-    console.log("   Existing ingredient IDs:", existingIngIds);
-    console.log("   Incoming ingredient IDs:", incomingIngIds);
+    const incomingIngIds = (ingredients || [])
+      .filter((i) => i.id)
+      .map((i) => i.id);
+    const existingIngIds = existingIngredients.map((i) => i.id);
 
     // Delete removed
-    const toDeleteIng = existingIngIds.filter(id => !incomingIngIds.includes(id));
+    const toDeleteIng = existingIngIds.filter(
+      (id) => !incomingIngIds.includes(id)
+    );
     if (toDeleteIng.length > 0) {
       console.log("   Deleting ingredients:", toDeleteIng);
-      await conn.query(
-        "DELETE FROM customrecipeingredient WHERE id IN (?)",
-        [toDeleteIng]
-      );
+      await conn.query("DELETE FROM customrecipeingredient WHERE id IN (?)", [
+        toDeleteIng,
+      ]);
     }
 
     // Insert / update
@@ -184,49 +182,33 @@ exports.updateCustomRecipe = async (req, res) => {
       }
     }
 
-    // --- STEPS ---
-    console.log("🔹 Syncing steps...");
-    const [existingSteps] = await conn.query(
-      "SELECT id FROM customrecipestep WHERE custRecipId = ?",
-      [recipeId]
-    );
-    const incomingStepIds = (steps || []).filter(s => s.id).map(s => s.id);
-    const existingStepIds = existingSteps.map(s => s.id);
+    // --- STEPS (wipe & reinsert) ---
+    console.log("🔹 Replacing steps...");
 
-    console.log("   Existing step IDs:", existingStepIds);
-    console.log("   Incoming step IDs:", incomingStepIds);
+    // Always clear existing steps
+    await conn.query("DELETE FROM customrecipestep WHERE custRecipId = ?", [
+      recipeId,
+    ]);
 
-    // Delete removed
-    const toDeleteSteps = existingStepIds.filter(id => !incomingStepIds.includes(id));
-    if (toDeleteSteps.length > 0) {
-      console.log("   Deleting steps:", toDeleteSteps);
-      await conn.query(
-        "DELETE FROM customrecipestep WHERE id IN (?)",
-        [toDeleteSteps]
-      );
-    }
+    // Re-insert from scratch with new order
+    for (let i = 0; i < (steps || []).length; i++) {
+      const description =
+        typeof steps[i] === "string" ? steps[i] : steps[i]?.description;
 
-    // Insert / update
-    for (let step of steps || []) {
-      if (step.id) {
-        console.log("   Updating step:", step);
-        await conn.query(
-          "UPDATE customrecipestep SET stepNumber = ?, description = ? WHERE id = ?",
-          [step.stepNumber, step.description, step.id]
-        );
-      } else {
-        console.log("   Inserting new step:", step);
-        await conn.query(
-          "INSERT INTO customrecipestep (userId, custRecipId, stepNumber, description) VALUES (?, ?, ?, ?)",
-          [req.userId || 1, recipeId, step.stepNumber, step.description]
-        );
+      if (!description || !description.trim()) {
+        console.log("   Skipping empty step at index", i);
+        continue;
       }
+
+      await conn.query(
+        "INSERT INTO customrecipestep (userId, custRecipId, stepNumber, description) VALUES (?, ?, ?, ?)",
+        [req.userId || 1, recipeId, i + 1, description.trim()]
+      );
     }
 
     await conn.commit();
     console.log("✅ Recipe updated successfully!");
     res.json({ message: "Recipe updated successfully" });
-
   } catch (err) {
     await conn.rollback();
     console.error("❌ Error updating recipe:", err);

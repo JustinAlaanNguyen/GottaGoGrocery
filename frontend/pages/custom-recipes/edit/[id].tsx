@@ -215,6 +215,9 @@ export default function EditCustomRecipePage() {
       });
     }
 
+    // ✅ Remove empty steps before sending
+    const filteredSteps = steps.filter((s) => s.trim() !== "");
+
     try {
       await axios.put(`http://localhost:5000/api/custom-recipes/${params.id}`, {
         title,
@@ -225,7 +228,7 @@ export default function EditCustomRecipePage() {
         notes,
       });
       toast({ status: "success", title: "Recipe updated!" });
-      router.push("/home");
+      router.push(`/custom-recipes/${params.id}`);
     } catch (err) {
       console.error("Error updating recipe:", err);
       toast({ status: "error", title: "Failed to update recipe" });
