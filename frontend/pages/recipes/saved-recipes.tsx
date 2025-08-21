@@ -186,9 +186,13 @@ export default function SavedRecipesPage() {
                           bg="#3c5b3a"
                           color="white"
                           _hover={{ bg: "#2d452c" }}
-                          onClick={() =>
-                            router.push(`/custom-recipes/${recipe.id}`)
-                          }
+                          onClick={() => {
+                            if (recipe.type === "custom") {
+                              router.push(`/custom-recipes/${recipe.id}`); // ✅ Custom recipe details page
+                            } else {
+                              router.push(`/recipes/${recipe.id}`); // ✅ Saved recipe details page
+                            }
+                          }}
                         >
                           View
                         </Button>
@@ -237,9 +241,13 @@ export default function SavedRecipesPage() {
                             bg="#3c5b3a"
                             color="white"
                             _hover={{ bg: "#2d452c" }}
-                            onClick={() =>
-                              router.push(`/custom-recipes/${r.id}`)
-                            }
+                            onClick={() => {
+                              if (r.type === "custom") {
+                                router.push(`/custom-recipes/${r.id}`);
+                              } else {
+                                router.push(`/recipes/${r.id}`);
+                              }
+                            }}
                           >
                             View
                           </Button>
@@ -295,9 +303,13 @@ export default function SavedRecipesPage() {
                             bg="#3c5b3a"
                             color="white"
                             _hover={{ bg: "#2d452c" }}
-                            onClick={() =>
-                              router.push(`/custom-recipes/${r.id}`)
-                            }
+                            onClick={() => {
+                              if (r.type === "custom") {
+                                router.push(`/custom-recipes/${r.id}`);
+                              } else {
+                                router.push(`/recipes/${r.id}`);
+                              }
+                            }}
                           >
                             View
                           </Button>

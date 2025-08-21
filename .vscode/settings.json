@@ -2,6 +2,9 @@
     "cSpell.words": [
         "chakra",
         "customrecipe",
+        "customrecipeingredient",
+        "customrecipestep",
+        "custRecipId",
         "nextauth",
         "phonepic",
         "savedrecipe"

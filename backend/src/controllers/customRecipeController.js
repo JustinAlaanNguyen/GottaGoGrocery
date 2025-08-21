@@ -43,7 +43,6 @@ exports.createCustomRecipe = async (req, res) => {
       );
     }
 
-    // Optional: Store notes in recipeDescription or create a separate notes table
     // Update notes in its own column
     if (notes) {
       await conn.query("UPDATE customrecipe SET notes = ? WHERE id = ?", [
@@ -90,15 +89,16 @@ exports.getCustomRecipeById = async (req, res) => {
     if (!recipe) return res.status(404).json({ message: "Not found" });
 
     const [ingredients] = await db.query(
-      "SELECT ingredient, quantity FROM customrecipeingredient WHERE custRecipId = ?",
+      "SELECT id, ingredient, quantity FROM customrecipeingredient WHERE custRecipId = ?",
       [recipeId]
     );
     const [steps] = await db.query(
-      "SELECT stepNumber, description FROM customrecipestep WHERE custRecipId = ? ORDER BY stepNumber ASC",
+      "SELECT id, stepNumber, description FROM customrecipestep WHERE custRecipId = ? ORDER BY stepNumber ASC",
       [recipeId]
     );
 
     res.json({
+      id: recipe.id,
       title: recipe.title,
       recipeDescription: recipe.recipeDescription,
       serving: recipe.serving,
@@ -112,23 +112,126 @@ exports.getCustomRecipeById = async (req, res) => {
   }
 };
 
+
 exports.updateCustomRecipe = async (req, res) => {
   const recipeId = req.params.id;
-  const { title, recipeDescription, serving } = req.body;
+  const { title, recipeDescription, serving, ingredients, steps, notes } = req.body;
+
+  console.log("🔹 Incoming update request:", {
+    recipeId,
+    title,
+    recipeDescription,
+    serving,
+    notes,
+    ingredients,
+    steps,
+  });
+
+  const conn = await db.getConnection();
+  await conn.beginTransaction();
 
   try {
-    const [result] = await db.query(
-      "UPDATE customrecipe SET title = ?, recipeDescription = ?, serving = ? WHERE id = ?",
-      [title, recipeDescription, serving, recipeId]
+    // --- RECIPE ---
+    console.log("🔹 Updating main recipe...");
+    const [result] = await conn.query(
+      "UPDATE customrecipe SET title = ?, recipeDescription = ?, serving = ?, notes = ? WHERE id = ?",
+      [title, recipeDescription, serving, notes || null, recipeId]
     );
+    console.log("   Recipe update result:", result);
 
     if (result.affectedRows === 0) {
+      await conn.rollback();
+      console.warn("⚠️ Recipe not found:", recipeId);
       return res.status(404).json({ message: "Recipe not found" });
     }
 
+    // --- INGREDIENTS ---
+    console.log("🔹 Syncing ingredients...");
+    const [existingIngredients] = await conn.query(
+      "SELECT id FROM customrecipeingredient WHERE custRecipId = ?",
+      [recipeId]
+    );
+    const incomingIngIds = (ingredients || []).filter(i => i.id).map(i => i.id);
+    const existingIngIds = existingIngredients.map(i => i.id);
+
+    console.log("   Existing ingredient IDs:", existingIngIds);
+    console.log("   Incoming ingredient IDs:", incomingIngIds);
+
+    // Delete removed
+    const toDeleteIng = existingIngIds.filter(id => !incomingIngIds.includes(id));
+    if (toDeleteIng.length > 0) {
+      console.log("   Deleting ingredients:", toDeleteIng);
+      await conn.query(
+        "DELETE FROM customrecipeingredient WHERE id IN (?)",
+        [toDeleteIng]
+      );
+    }
+
+    // Insert / update
+    for (let ing of ingredients || []) {
+      if (ing.id) {
+        console.log("   Updating ingredient:", ing);
+        await conn.query(
+          "UPDATE customrecipeingredient SET ingredient = ?, quantity = ? WHERE id = ?",
+          [ing.ingredient, ing.quantity, ing.id]
+        );
+      } else {
+        console.log("   Inserting new ingredient:", ing);
+        await conn.query(
+          "INSERT INTO customrecipeingredient (userId, custRecipId, ingredient, quantity) VALUES (?, ?, ?, ?)",
+          [req.userId || 1, recipeId, ing.ingredient, ing.quantity]
+        );
+      }
+    }
+
+    // --- STEPS ---
+    console.log("🔹 Syncing steps...");
+    const [existingSteps] = await conn.query(
+      "SELECT id FROM customrecipestep WHERE custRecipId = ?",
+      [recipeId]
+    );
+    const incomingStepIds = (steps || []).filter(s => s.id).map(s => s.id);
+    const existingStepIds = existingSteps.map(s => s.id);
+
+    console.log("   Existing step IDs:", existingStepIds);
+    console.log("   Incoming step IDs:", incomingStepIds);
+
+    // Delete removed
+    const toDeleteSteps = existingStepIds.filter(id => !incomingStepIds.includes(id));
+    if (toDeleteSteps.length > 0) {
+      console.log("   Deleting steps:", toDeleteSteps);
+      await conn.query(
+        "DELETE FROM customrecipestep WHERE id IN (?)",
+        [toDeleteSteps]
+      );
+    }
+
+    // Insert / update
+    for (let step of steps || []) {
+      if (step.id) {
+        console.log("   Updating step:", step);
+        await conn.query(
+          "UPDATE customrecipestep SET stepNumber = ?, description = ? WHERE id = ?",
+          [step.stepNumber, step.description, step.id]
+        );
+      } else {
+        console.log("   Inserting new step:", step);
+        await conn.query(
+          "INSERT INTO customrecipestep (userId, custRecipId, stepNumber, description) VALUES (?, ?, ?, ?)",
+          [req.userId || 1, recipeId, step.stepNumber, step.description]
+        );
+      }
+    }
+
+    await conn.commit();
+    console.log("✅ Recipe updated successfully!");
     res.json({ message: "Recipe updated successfully" });
+
   } catch (err) {
-    console.error("Error updating recipe:", err);
-    res.status(500).json({ message: "Server error" });
+    await conn.rollback();
+    console.error("❌ Error updating recipe:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  } finally {
+    conn.release();
   }
 };

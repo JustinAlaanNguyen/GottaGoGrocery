@@ -1,178 +1,167 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import axios from "axios";
+import Navbar from "../../components/Navbar";
+
 import {
   Box,
   Heading,
   Text,
-  Flex,
-  Spinner,
   VStack,
-  List,
-  ListItem,
   Button,
+  Spinner,
   Divider,
 } from "@chakra-ui/react";
-import { useRouter, useParams } from "next/navigation";
-import Navbar from "../../components/Navbar";
-import axios from "axios";
-import { motion } from "framer-motion";
 
-const MotionBox = motion(Box);
+type Ingredient = {
+  id: number;
+  recipeId: number;
+  ingredient: string;
+};
 
-type RecipeDetails = {
+type Step = {
+  id: number;
+  recipeId: number;
+  stepNumber: number;
+  description: string;
+};
+
+type Recipe = {
+  id: number;
+  userId: number;
   title: string;
   recipeDescription: string;
   serving: number;
-  ingredients: { ingredient: string; quantity: string }[];
-  steps: { stepNumber: number; description: string }[];
-  notes: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  ingredients: Ingredient[];
+  steps: Step[];
 };
 
-export default function CustomRecipeDetailsPage() {
+export default function CustomRecipeDetails() {
   const router = useRouter();
   const params = useParams();
-  const { id } = params || {};
-
+  const id = params?.id;
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recipe, setRecipe] = useState<RecipeDetails | null>(null);
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (!user) {
-      router.push("/account/signin");
-      return;
-    }
-    async function fetchRecipe() {
+    if (!id) return;
+    const fetchRecipe = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/custom-recipes/${id}`
+          `http://localhost:5000/custom-recipes/${id}`
         );
+
         setRecipe(res.data);
-      } catch (e) {
-        console.error("Error fetching details:", e);
+      } catch (error) {
+        console.error("Error fetching recipe:", error);
       } finally {
         setLoading(false);
       }
+    };
+
+    if (id) {
+      fetchRecipe();
     }
-    if (id) fetchRecipe();
-  }, [id, router]);
+  }, [id]);
 
   if (loading) {
     return (
-      <Flex justify="center" align="center" minH="100vh" bg="#3c5b3a">
-        <Spinner size="xl" color="white" />
-      </Flex>
+      <Box
+        minH="100vh"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Spinner size="xl" />
+      </Box>
     );
   }
 
   if (!recipe) {
     return (
-      <Flex justify="center" align="center" minH="100vh" bg="#3c5b3a">
-        <Text color="white">Recipe not found.</Text>
-      </Flex>
+      <Box
+        minH="100vh"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Text fontSize="xl">Recipe not found.</Text>
+      </Box>
     );
   }
 
-  // ✂️ Extract "Notes:" from inside description
-  let description = recipe.recipeDescription;
-  let extractedNotes: string | undefined;
-
-  if (description.includes("Notes:")) {
-    const parts = description.split("Notes:");
-    description = parts[0].trim();
-    extractedNotes = parts[1].trim();
-  }
-
   return (
-    <Box bg="#3c5b3a" minH="100vh">
+    <>
       <Navbar />
-
-      {/* Hero Header */}
-      <Box py={14} px={4} color="white" textAlign="center">
-        <Heading fontSize="4xl" mb={3}>
-          {recipe.title}
-        </Heading>
-        <Text maxW="3xl" mx="auto" fontSize="lg">
-          {description}
+      <Box maxW="800px" mx="auto" mt={8} px={4}>
+        <Heading mb={2}>{recipe.title}</Heading>
+        <Text fontSize="lg" color="gray.600">
+          {recipe.recipeDescription}
         </Text>
-      </Box>
-
-      {/* Content */}
-      <MotionBox
-        maxW="4xl"
-        mx="auto"
-        mt={-12}
-        p={10}
-        bg="white"
-        rounded="3xl"
-        shadow="2xl"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Text mb={4} fontSize="lg">
-          <strong>Servings:</strong> {recipe.serving}
+        <Text fontSize="md" mt={2}>
+          Servings: {recipe.serving}
         </Text>
 
-        <Heading size="md" mb={3} color="#2d452c">
-          Ingredients
-        </Heading>
-        <List pl={6} mb={6} styleType="disc">
-          {recipe.ingredients.map((ing, i) => (
-            <ListItem key={i}>
-              <strong>{ing.ingredient}</strong> — {ing.quantity}
-            </ListItem>
-          ))}
-        </List>
-
-        <Divider />
-
-        <Heading size="md" mt={6} mb={3} color="#2d452c">
-          Steps
-        </Heading>
-        <VStack align="stretch" spacing={4}>
-          {recipe.steps.map((step, index) => (
-            <Box
-              key={index}
-              bg="#f8f8f8"
-              p={4}
-              borderRadius="md"
-              borderLeft="6px solid #3c5b3a"
-            >
-              <Text fontWeight="bold" mb={2}>
-                Step {step.stepNumber}
-              </Text>
-              <Text>{step.description}</Text>
-            </Box>
-          ))}
-        </VStack>
-
-        {/* Provided notes in separate DB field  */}
-        {(recipe.notes || extractedNotes) && (
-          <>
-            <Divider />
-            <Heading size="md" mt={6} mb={3} color="#2d452c">
-              Notes
-            </Heading>
-            <Text>{recipe.notes || extractedNotes}</Text>
-          </>
+        {recipe.notes && (
+          <Box
+            mt={4}
+            p={3}
+            bg="yellow.50"
+            borderRadius="md"
+            border="1px"
+            borderColor="yellow.200"
+          >
+            <Text fontWeight="bold">Notes:</Text>
+            <Text>{recipe.notes}</Text>
+          </Box>
         )}
 
-        <Flex mt={10} gap={4} justify="flex-end">
-          <Button
-            variant="outline"
-            borderColor="#3c5b3a"
-            color="#3c5b3a"
-            _hover={{ bg: "#e1e4e3" }}
-            onClick={() => router.push(`/custom-recipes/edit/${id}`)}
-          >
-            Edit Recipe
-          </Button>
-          <Button bg="#3c5b3a" color="white" _hover={{ bg: "#2d452c" }}>
-            Grocery List
-          </Button>
-        </Flex>
-      </MotionBox>
-    </Box>
+        <Divider my={6} />
+
+        <Heading size="md" mb={3}>
+          Ingredients
+        </Heading>
+        <VStack align="start" spacing={2}>
+          {recipe.ingredients.length > 0 ? (
+            recipe.ingredients.map((ing) => (
+              <Text key={ing.id}>• {ing.ingredient}</Text>
+            ))
+          ) : (
+            <Text color="gray.500">No ingredients listed.</Text>
+          )}
+        </VStack>
+
+        <Divider my={6} />
+
+        <Heading size="md" mb={3}>
+          Steps
+        </Heading>
+        <VStack align="start" spacing={2}>
+          {recipe.steps.length > 0 ? (
+            recipe.steps.map((step) => (
+              <Text key={step.id}>
+                <strong>Step {step.stepNumber}:</strong> {step.description}
+              </Text>
+            ))
+          ) : (
+            <Text color="gray.500">No steps listed.</Text>
+          )}
+        </VStack>
+
+        <Divider my={6} />
+
+        <Button
+          colorScheme="blue"
+          onClick={() => router.push(`/custom-recipes/edit/${recipe.id}`)}
+        >
+          Edit Recipe
+        </Button>
+      </Box>
+    </>
   );
 }
