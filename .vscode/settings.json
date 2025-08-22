@@ -7,6 +7,7 @@
         "custRecipId",
         "nextauth",
         "phonepic",
-        "savedrecipe"
+        "savedrecipe",
+        "SPOONACULAR"
     ]
 }

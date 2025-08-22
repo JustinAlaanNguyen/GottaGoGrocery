@@ -24,6 +24,7 @@ import { CloseIcon } from "@chakra-ui/icons";
 import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../../../components/Navbar";
+import UnitAutocompleteInput from "../../../components/UnitAutocompleteInput";
 import axios from "axios";
 
 const floatingEmojiAnimation = {
@@ -117,7 +118,7 @@ export default function EditCustomRecipePage() {
   const [recipeDescription, setRecipeDescription] = useState("");
   const [serving, setServing] = useState("");
   const [ingredients, setIngredients] = useState([
-    { ingredient: "", quantity: "" },
+    { ingredient: "", quantity: "", unit: "" },
   ]);
   const [steps, setSteps] = useState([""]);
   const [notes, setNotes] = useState("");
@@ -191,7 +192,10 @@ export default function EditCustomRecipePage() {
   }, []);
 
   const addIngredient = () =>
-    setIngredients([...ingredients, { ingredient: "", quantity: "" }]);
+    setIngredients([
+      ...ingredients,
+      { ingredient: "", quantity: "", unit: "" },
+    ]);
 
   const deleteIngredient = (i: number) =>
     setIngredients(ingredients.filter((_, idx) => idx !== i));
@@ -314,7 +318,7 @@ export default function EditCustomRecipePage() {
                 <MotionBox
                   key={i}
                   as={SimpleGrid}
-                  columns={3}
+                  columns={4}
                   spacing={2}
                   alignItems="center"
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -338,6 +342,15 @@ export default function EditCustomRecipePage() {
                       setIngredients(updated);
                     }}
                   />
+                  <UnitAutocompleteInput
+                    value={ing.unit}
+                    onChange={(val) => {
+                      const updated = [...ingredients];
+                      updated[i].unit = val;
+                      setIngredients(updated);
+                    }}
+                  />
+
                   <IconButton
                     aria-label="Delete"
                     icon={<CloseIcon />}
@@ -412,6 +425,34 @@ export default function EditCustomRecipePage() {
 
             <Button
               bg="#a32c2cff"
+              color="white"
+              size="lg"
+              _hover={{ bg: "#611b1bff", color: "white" }}
+              onClick={async () => {
+                if (
+                  !confirm(
+                    "Are you sure you want to delete this recipe? This action cannot be undone."
+                  )
+                ) {
+                  return;
+                }
+                try {
+                  await axios.delete(
+                    `http://localhost:5000/api/custom-recipes/${params.id}`
+                  );
+                  toast({ status: "success", title: "Recipe deleted" });
+                  router.push("/custom-recipes"); // ✅ go back to recipe list
+                } catch (err) {
+                  console.error("Error deleting recipe:", err);
+                  toast({ status: "error", title: "Failed to delete recipe" });
+                }
+              }}
+            >
+              🗑️ Delete Recipe
+            </Button>
+
+            <Button
+              bg="#a32c2cff"
               color="black"
               size="lg"
               _hover={{ bg: "#611b1bff", color: "white" }}
@@ -452,7 +493,7 @@ export default function EditCustomRecipePage() {
               (ing, i) =>
                 ing.ingredient && (
                   <li key={i}>
-                    {ing.ingredient} — {ing.quantity}
+                    {ing.ingredient} — {ing.quantity} {ing.unit}
                   </li>
                 )
             )}

@@ -28,12 +28,13 @@ exports.createCustomRecipe = async (req, res) => {
     const custRecipId = recipeResult.insertId;
 
     // Insert ingredients
-    for (let ing of ingredients) {
-      await conn.query(
-        "INSERT INTO customrecipeingredient (userId, custRecipId, ingredient, quantity) VALUES (?, ?, ?, ?)",
-        [userId, custRecipId, ing.ingredient, ing.quantity]
-      );
-    }
+for (let ing of ingredients) {
+  await conn.query(
+    "INSERT INTO customrecipeingredient (userId, custRecipId, ingredient, quantity, unit) VALUES (?, ?, ?, ?, ?)",
+    [userId, custRecipId, ing.ingredient, ing.quantity, ing.unit || null]
+  );
+}
+
 
     // Insert steps
     for (let i = 0; i < steps.length; i++) {
@@ -89,9 +90,10 @@ exports.getCustomRecipeById = async (req, res) => {
     if (!recipe) return res.status(404).json({ message: "Not found" });
 
     const [ingredients] = await db.query(
-      "SELECT id, ingredient, quantity FROM customrecipeingredient WHERE custRecipId = ?",
-      [recipeId]
-    );
+  "SELECT id, ingredient, quantity, unit FROM customrecipeingredient WHERE custRecipId = ?",
+  [recipeId]
+);
+
     const [steps] = await db.query(
       "SELECT id, stepNumber, description FROM customrecipestep WHERE custRecipId = ? ORDER BY stepNumber ASC",
       [recipeId]
@@ -170,15 +172,16 @@ exports.updateCustomRecipe = async (req, res) => {
       if (ing.id) {
         console.log("   Updating ingredient:", ing);
         await conn.query(
-          "UPDATE customrecipeingredient SET ingredient = ?, quantity = ? WHERE id = ?",
-          [ing.ingredient, ing.quantity, ing.id]
-        );
+  "UPDATE customrecipeingredient SET ingredient = ?, quantity = ?, unit = ? WHERE id = ?",
+  [ing.ingredient, ing.quantity, ing.unit || null, ing.id]
+);
+
       } else {
         console.log("   Inserting new ingredient:", ing);
         await conn.query(
-          "INSERT INTO customrecipeingredient (userId, custRecipId, ingredient, quantity) VALUES (?, ?, ?, ?)",
-          [req.userId || 1, recipeId, ing.ingredient, ing.quantity]
-        );
+  "INSERT INTO customrecipeingredient (userId, custRecipId, ingredient, quantity, unit) VALUES (?, ?, ?, ?, ?)",
+  [req.userId || 1, recipeId, ing.ingredient, ing.quantity, ing.unit || null]
+);
       }
     }
 
@@ -215,5 +218,20 @@ exports.updateCustomRecipe = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   } finally {
     conn.release();
+  }
+};
+
+exports.deleteCustomRecipe = async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Delete ingredients & steps (ON DELETE CASCADE also works if FK is set correctly)
+    await db.query("DELETE FROM customrecipeingredient WHERE custRecipId = ?", [id]);
+    await db.query("DELETE FROM customrecipestep WHERE custRecipId = ?", [id]);
+    await db.query("DELETE FROM customrecipe WHERE id = ?", [id]);
+
+    res.status(200).json({ message: "Recipe deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting recipe:", error);
+    res.status(500).json({ error: "Failed to delete recipe" });
   }
 };

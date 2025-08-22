@@ -1,6 +1,3 @@
-// to do imperial/metric switch
-// to do: add units and quantity fields
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -28,6 +25,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../../components/Navbar";
 import axios from "axios";
+import UnitAutocompleteInput from "../../components/UnitAutocompleteInput"; // ✅ import the new component
 
 const floatingEmojiAnimation = {
   y: [0, 15, 0, 15, 0],
@@ -131,13 +129,16 @@ export default function CreateCustomRecipePage() {
   const [recipeDescription, setRecipeDescription] = useState("");
   const [serving, setServing] = useState("");
   const [ingredients, setIngredients] = useState([
-    { ingredient: "", quantity: "" },
+    { ingredient: "", quantity: "", unit: "" }, // ✅ added unit
   ]);
   const [steps, setSteps] = useState([""]);
   const [notes, setNotes] = useState("");
 
   const addIngredient = () =>
-    setIngredients([...ingredients, { ingredient: "", quantity: "" }]);
+    setIngredients([
+      ...ingredients,
+      { ingredient: "", quantity: "", unit: "" },
+    ]);
 
   const deleteIngredient = (i: number) => {
     const updated = ingredients.filter((_, idx) => idx !== i);
@@ -272,13 +273,11 @@ export default function CreateCustomRecipePage() {
               onChange={(e) => {
                 const val = e.target.value;
 
-                // Allow empty string (so user can clear the field)
                 if (val === "") {
                   setServing("");
                   return;
                 }
 
-                // Validate: only positive integers
                 if (/^\d+$/.test(val)) {
                   setServing(val);
                 } else {
@@ -299,7 +298,7 @@ export default function CreateCustomRecipePage() {
                 <MotionBox
                   key={i}
                   as={SimpleGrid}
-                  columns={3}
+                  columns={4} // ✅ changed from 3 to 4 (ingredient, qty, unit, delete)
                   spacing={2}
                   alignItems="center"
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -324,6 +323,16 @@ export default function CreateCustomRecipePage() {
                       setIngredients(updated);
                     }}
                   />
+
+                  <UnitAutocompleteInput
+                    value={ing.unit}
+                    onChange={(val) => {
+                      const updated = [...ingredients];
+                      updated[i].unit = val;
+                      setIngredients(updated);
+                    }}
+                  />
+
                   <IconButton
                     aria-label="Delete"
                     icon={<CloseIcon />}
@@ -440,7 +449,7 @@ export default function CreateCustomRecipePage() {
               (ing, i) =>
                 ing.ingredient && (
                   <li key={i}>
-                    {ing.ingredient} — {ing.quantity}
+                    {ing.quantity} {ing.unit} {ing.ingredient}
                   </li>
                 )
             )}

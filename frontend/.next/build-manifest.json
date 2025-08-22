@@ -23,25 +23,15 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/custom-recipes": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/custom-recipes.js"
-    ],
     "/custom-recipes/[id]": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/custom-recipes/[id].js"
     ],
-    "/home": [
+    "/custom-recipes/edit/[id]": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/home.js"
-    ],
-    "/recipes/saved-recipes": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/recipes/saved-recipes.js"
+      "static/chunks/pages/custom-recipes/edit/[id].js"
     ]
   },
   "ampFirstPages": []
