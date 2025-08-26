@@ -19,7 +19,6 @@ import { useRouter } from "next/router";
 const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);
 
-// Floating animation for background blobs
 const floatingAnimation = {
   y: [0, -10, 0, 10, 0],
   scale: [1, 1.05, 1, 1.08, 1],
@@ -30,7 +29,7 @@ const floatingAnimation = {
   },
 };
 
-// Fruit emojis for sign-in page
+// Fruit emojis for background
 const fruitEmojis = ["🍎", "🍓", "🍍"];
 
 const SignIn = (): React.ReactElement => {
@@ -42,12 +41,11 @@ const SignIn = (): React.ReactElement => {
   const [fruits, setFruits] = React.useState<React.ReactElement[]>([]);
   const router = useRouter();
 
-  // Floating fruit effect (same as sign-up page smoothness)
   React.useEffect(() => {
     const elements = [...Array(30)].map((_, i) => {
       const top = `${Math.random() * 90}%`;
       const left = `${Math.random() * 90}%`;
-      const duration = Math.random() * 4 + 3; // 3–7s for variation
+      const duration = Math.random() * 4 + 3;
       const rotation = Math.random() * 360;
       const fruit = fruitEmojis[Math.floor(Math.random() * fruitEmojis.length)];
 
@@ -102,8 +100,6 @@ const SignIn = (): React.ReactElement => {
       });
 
       const { token, user } = res.data;
-
-      // ✅ Store token & user so /home knows you're logged in
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
@@ -118,7 +114,7 @@ const SignIn = (): React.ReactElement => {
   };
 
   return (
-    <Box bg="#fbfaf8" minH="100vh" position="relative" overflow="hidden">
+    <Box bg="#ccd5ae" minH="100vh" position="relative" overflow="hidden">
       <Navbar />
 
       {/* Floating background blobs */}
@@ -138,7 +134,7 @@ const SignIn = (): React.ReactElement => {
         w="250px"
         h="250px"
         borderRadius="full"
-        bg="#cead7fff"
+        bg="#cead7f"
         top="70%"
         left="80%"
         zIndex={0}
@@ -156,15 +152,15 @@ const SignIn = (): React.ReactElement => {
           transformOrigin: "top center",
         }}
       >
-        {/* Leaf and branch decorations */}
+        {/* Leaf & branch accents */}
         <MotionBox
           position="absolute"
           width="90px"
           height="30px"
           bg="#2d452c"
           borderRadius="50%"
-          top="43%"
-          left="25%"
+          top="40vh"
+          left="33.1vw"
           style={{
             transformOrigin: "right center",
             transform: "translate(-10px, -50%) rotate(-45deg)",
@@ -178,14 +174,14 @@ const SignIn = (): React.ReactElement => {
           width="60px"
           height="1px"
           borderRadius="full"
-          top="50%"
-          left="28%"
+          top="44vh"
+          left="35.3vw"
           style={{
             transformOrigin: "right center",
             transform: "translate(-50%, -50%) rotate(-45deg)",
           }}
           zIndex={0}
-          bgGradient="linear(to-r, #dbd8d8ff 60%, black 40%)"
+          bgGradient="linear(to-r, #dbd8d8 60%, black 40%)"
           animate={{ rotate: [69, 65, 69, 65, 69] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
@@ -195,8 +191,8 @@ const SignIn = (): React.ReactElement => {
           height="30px"
           bg="#2d452c"
           borderRadius="50%"
-          top="58.5%"
-          left="61.5%"
+          top="55vh"
+          left="57.6vw"
           style={{
             transformOrigin: "right center",
             transform: "translate(-10px, -50%) rotate(-45deg)",
@@ -210,18 +206,19 @@ const SignIn = (): React.ReactElement => {
           width="60px"
           height="1px"
           borderRadius="full"
-          top="65%"
-          left="62.5%"
+          top="58vh"
+          left="58.5vw"
           style={{
             transformOrigin: "right center",
             transform: "translate(-50%, -50%) rotate(-45deg)",
           }}
           zIndex={0}
-          bgGradient="linear(to-r, #dbd8d8ff 60%, black 40%)"
+          bgGradient="linear(to-r, #dbd8d8 60%, black 40%)"
           animate={{ rotate: [135, 127, 135, 127, 135] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
 
+        {/* Sign-in card */}
         <MotionFlex
           align="center"
           justify="center"

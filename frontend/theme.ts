@@ -3,8 +3,8 @@ import { extendTheme } from "@chakra-ui/react";
 
 const theme = extendTheme({
   fonts: {
-    heading: "var(--font-kugile), sans-serif",
-    body: "var(--font-kugile), sans-serif",
+    heading: "Kugile, system-ui, sans-serif",
+    body: "Kugile, system-ui, sans-serif",
   },
 });
 

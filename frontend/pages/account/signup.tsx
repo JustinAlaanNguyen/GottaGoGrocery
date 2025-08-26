@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import {
   Box,
@@ -27,7 +29,6 @@ const floatingAnimation = {
   },
 };
 
-// Pick a random veggie emoji
 const veggieEmojis = ["🥕", "🧅", "🥦"];
 
 const Signup = (): React.ReactElement => {
@@ -143,7 +144,7 @@ const Signup = (): React.ReactElement => {
   };
 
   return (
-    <Box bg="#fbfaf8" minH="100vh" position="relative" overflow="hidden">
+    <Box bg="#ccd5ae" minH="100vh" position="relative" overflow="hidden">
       <Navbar />
 
       {/* Floating Background Circles */}
@@ -152,7 +153,7 @@ const Signup = (): React.ReactElement => {
         w="350px"
         h="350px"
         borderRadius="full"
-        bg="#faeddb"
+        bg="#faedcd"
         top="20%"
         left="10%"
         zIndex={0}
@@ -163,12 +164,13 @@ const Signup = (): React.ReactElement => {
         w="250px"
         h="250px"
         borderRadius="full"
-        bg="#cead7fff"
+        bg="#d4a373"
         top="70%"
         left="80%"
         zIndex={0}
         animate={floatingAnimation}
       />
+
       {/* Decorative Leaves and Branches */}
       <MotionBox
         position="absolute"
@@ -176,8 +178,8 @@ const Signup = (): React.ReactElement => {
         height="30px"
         bg="#2d452c"
         borderRadius="50%"
-        top="60.5%"
-        left="29%"
+        top="61.4vh"
+        left="34.4vw"
         style={{
           transformOrigin: "right center",
           transform: "translate(-10px, -50%) rotate(-45deg)",
@@ -191,8 +193,8 @@ const Signup = (): React.ReactElement => {
         width="60px"
         height="1px"
         borderRadius="full"
-        top="65%"
-        left="32%"
+        top="65vh"
+        left="36.4vw"
         style={{
           transformOrigin: "right center",
           transform: "translate(-50%, -50%) rotate(-45deg)",
@@ -208,8 +210,8 @@ const Signup = (): React.ReactElement => {
         height="30px"
         bg="#2d452c"
         borderRadius="50%"
-        top="45.5%"
-        left="57%"
+        top="44.7vh"
+        left="56.5vw"
         style={{
           transformOrigin: "right center",
           transform: "translate(-10px, -50%) rotate(-45deg)",
@@ -223,8 +225,8 @@ const Signup = (): React.ReactElement => {
         width="60px"
         height="1px"
         borderRadius="full"
-        top="50%"
-        left="58%"
+        top="47.9vh"
+        left="57.4%"
         style={{
           transformOrigin: "right center",
           transform: "translate(-50%, -50%) rotate(-45deg)",
@@ -241,12 +243,8 @@ const Signup = (): React.ReactElement => {
       </Box>
 
       <motion.div
-        style={{
-          transform: "scale(0.75)",
-          transformOrigin: "top center",
-        }}
+        style={{ transform: "scale(0.9)", transformOrigin: "top center" }}
       >
-        {/* Floating leaves */}
         <MotionFlex
           align="center"
           justify="center"
@@ -257,7 +255,8 @@ const Signup = (): React.ReactElement => {
           zIndex={1}
         >
           <MotionBox
-            bg="whiteAlpha.800"
+            bg="white"
+            border="1px solid #e9edc9"
             backdropFilter="blur(10px)"
             p={8}
             borderRadius="3xl"
@@ -267,7 +266,13 @@ const Signup = (): React.ReactElement => {
             animate={shake ? { x: [-10, 10, -10, 10, 0] } : {}}
             transition={{ duration: 0.4 }}
           >
-            <Heading as="h2" fontSize="5xl" textAlign="center" mb={10}>
+            <Heading
+              as="h2"
+              fontSize="4xl"
+              color="#344e41"
+              textAlign="center"
+              mb={10}
+            >
               Create Your Account
             </Heading>
 
@@ -277,14 +282,16 @@ const Signup = (): React.ReactElement => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 size="lg"
-                fontSize="2xl"
+                fontSize="xl"
+                borderColor="#e9edc9"
               />
               <Input
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 size="lg"
-                fontSize="2xl"
+                fontSize="xl"
+                borderColor="#e9edc9"
               />
               <Input
                 placeholder="Password"
@@ -292,7 +299,8 @@ const Signup = (): React.ReactElement => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 size="lg"
-                fontSize="2xl"
+                fontSize="xl"
+                borderColor="#e9edc9"
               />
               <Input
                 placeholder="Confirm Password"
@@ -300,8 +308,10 @@ const Signup = (): React.ReactElement => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 size="lg"
-                fontSize="2xl"
+                fontSize="xl"
+                borderColor="#e9edc9"
               />
+
               <MotionBox
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -310,8 +320,8 @@ const Signup = (): React.ReactElement => {
                 <Button
                   bg="#3c5b3a"
                   color="white"
-                  fontSize="2xl"
-                  py={8}
+                  fontSize="xl"
+                  py={6}
                   w="full"
                   borderRadius="full"
                   _hover={{ bg: "#2d452c" }}
@@ -326,20 +336,20 @@ const Signup = (): React.ReactElement => {
 
               {message && (
                 <Text
-                  color={success ? "green.500" : "red.500"}
-                  fontSize="lg"
+                  color={success ? "green.600" : "red.500"}
+                  fontSize="md"
                   textAlign="center"
                 >
                   {message}
                 </Text>
               )}
 
-              <Text mt={6} fontSize="lg" color="gray.700" textAlign="center">
+              <Text mt={6} fontSize="md" color="#2d452c" textAlign="center">
                 Already have an account?{" "}
                 <ChakraLink
                   as={NextLink}
                   href="/account/signin"
-                  color="#3c5b3a"
+                  color="#344e41"
                   fontWeight="bold"
                   _hover={{ textDecoration: "underline" }}
                 >

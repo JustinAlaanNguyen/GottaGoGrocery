@@ -8,8 +8,8 @@ const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);
 
 const floatingAnimation = {
-  y: [0, -10, 0, 10, 0], // up and down
-  scale: [1, 1.05, 1, 1.08, 1], // pulsing
+  y: [0, -10, 0, 10, 0],
+  scale: [1, 1.05, 1, 1.08, 1],
   transition: {
     duration: 6,
     repeat: Infinity,
@@ -19,7 +19,7 @@ const floatingAnimation = {
 
 const HomePage: React.FC = () => {
   return (
-    <Box bg="#fbfaf8" minH="100vh" position="relative" overflow="hidden">
+    <Box bg="#ccd5ae" minH="100vh" position="relative" overflow="hidden">
       <Navbar />
 
       <MotionFlex
@@ -46,26 +46,26 @@ const HomePage: React.FC = () => {
           <Heading
             as="h1"
             fontSize="6xl"
-            color="black"
+            color="#344e41"
             mb={12}
             lineHeight="1.2"
           >
             Get Your Grocery List Sorted
           </Heading>
-          <Text fontSize="2xl" color="black" mb={16}>
+          <Text fontSize="2xl" color="#344e41" mb={16}>
             Simplify your meal planning and grocery shopping by searching for
             recipes and sending the ingredients to your phone.
           </Text>
           <NextLink href="/account/signup">
             <Button
               size="lg"
-              bg="#3c5b3a"
+              bg="#d4a373"
               color="white"
               fontSize="2xl"
               px={12}
               py={8}
               borderRadius="full"
-              _hover={{ bg: "#2d452c" }}
+              _hover={{ bg: "#faedcd", color: "#344e41" }}
             >
               Get Started
             </Button>
@@ -89,7 +89,7 @@ const HomePage: React.FC = () => {
             w="400px"
             h="400px"
             borderRadius="full"
-            bg="#faeddb"
+            bg="#faedcd"
             top="-16%"
             left="-10%"
             style={{ transform: "translate(-50%, -50%)" }}
@@ -101,7 +101,7 @@ const HomePage: React.FC = () => {
             w="300px"
             h="300px"
             borderRadius="full"
-            bg="#cead7fff"
+            bg="#cead7f"
             top="30%"
             left="55%"
             style={{ transform: "translate(-50%, -50%)" }}
@@ -310,9 +310,9 @@ const HomePage: React.FC = () => {
               ease: "easeInOut",
             }}
           />
-          {/* 📱 Image in front */}
+          {/* 📱 Phone Image */}
           <Box
-            border="10px solid #e6cbb0"
+            border="10px solid #e9edc9"
             borderRadius="4xl"
             rounded={50}
             overflow="hidden"

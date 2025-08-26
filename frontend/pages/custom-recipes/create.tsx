@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../../components/Navbar";
 import axios from "axios";
-import UnitAutocompleteInput from "../../components/UnitAutocompleteInput"; // ✅ import the new component
+import UnitAutocompleteInput from "../../components/UnitAutocompleteInput";
 
 const floatingEmojiAnimation = {
   y: [0, 15, 0, 15, 0],
@@ -42,7 +42,7 @@ const cookingEmojis = ["🥕", "🍳", "🧄", "🥦", "🍅", "🧂"];
 
 const MotionBox = motion(Box);
 
-// Autocomplete Input for ingredient field
+// --- Ingredient Autocomplete ---
 interface AutoProps {
   value: string;
   onChange: (val: string) => void;
@@ -95,21 +95,21 @@ const IngredientAutocompleteInput: React.FC<AutoProps> = ({
   return (
     <Popover isOpen={isOpen}>
       <PopoverTrigger>
-        <Input placeholder="Ingredient" value={query} onChange={handleChange} />
+        <Input
+          placeholder="Ingredient"
+          value={query}
+          onChange={handleChange}
+          bg="white"
+        />
       </PopoverTrigger>
-      <PopoverContent
-        maxH="200px"
-        overflowY="auto"
-        zIndex={999}
-        _focus={{ boxShadow: "md" }}
-      >
+      <PopoverContent maxH="200px" overflowY="auto" zIndex={999}>
         <List>
           {suggestions.map((name) => (
             <ListItem
               key={name}
               px={3}
               py={2}
-              _hover={{ bg: "gray.100", cursor: "pointer" }}
+              _hover={{ bg: "#e9edc9", cursor: "pointer" }}
               onClick={() => handleSelect(name)}
             >
               {name}
@@ -121,6 +121,7 @@ const IngredientAutocompleteInput: React.FC<AutoProps> = ({
   );
 };
 
+// --- Main Component ---
 export default function CreateCustomRecipePage() {
   const router = useRouter();
   const toast = useToast();
@@ -129,30 +130,14 @@ export default function CreateCustomRecipePage() {
   const [recipeDescription, setRecipeDescription] = useState("");
   const [serving, setServing] = useState("");
   const [ingredients, setIngredients] = useState([
-    { ingredient: "", quantity: "", unit: "" }, // ✅ added unit
+    { ingredient: "", quantity: "", unit: "" },
   ]);
   const [steps, setSteps] = useState([""]);
   const [notes, setNotes] = useState("");
-
-  const addIngredient = () =>
-    setIngredients([
-      ...ingredients,
-      { ingredient: "", quantity: "", unit: "" },
-    ]);
-
-  const deleteIngredient = (i: number) => {
-    const updated = ingredients.filter((_, idx) => idx !== i);
-    setIngredients(updated);
-  };
-
-  const addStep = () => setSteps([...steps, ""]);
-  const deleteStep = (i: number) =>
-    setSteps(steps.filter((_, idx) => idx !== i));
-
   const [floatingIcons, setFloatingIcons] = useState<React.ReactElement[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🚀 Redirect if not logged in
+  // 🚀 Auth check
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
@@ -162,6 +147,7 @@ export default function CreateCustomRecipePage() {
     setLoading(false);
   }, [router]);
 
+  // Floating icons
   useEffect(() => {
     const items = [...Array(45)].map((_, i) => {
       const top = `${Math.random() * 90}%`;
@@ -224,13 +210,14 @@ export default function CreateCustomRecipePage() {
   };
 
   return (
-    <Box bg="#fbfaf8" minH="100vh">
+    <Box bg="#ccd5ae" minH="100vh">
       <Navbar />
 
-      {/* Background icons container (behind) */}
+      {/* Background icons */}
       <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
         {floatingIcons}
       </Box>
+
       <Flex
         maxW="6xl"
         mx="auto"
@@ -245,13 +232,14 @@ export default function CreateCustomRecipePage() {
         <MotionBox
           flex="1"
           bg="white"
-          rounded="3xl"
-          shadow="2xl"
+          rounded="2xl"
+          shadow="lg"
           p={10}
+          border="1px solid #e9edc9"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Heading mb={6} color="#2d452c">
+          <Heading mb={6} color="#344e41">
             Create a Custom Recipe 💡
           </Heading>
 
@@ -260,45 +248,33 @@ export default function CreateCustomRecipePage() {
               placeholder="Recipe Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              bg="#faedcd"
             />
             <Textarea
               placeholder="Short Description"
               value={recipeDescription}
               onChange={(e) => setRecipeDescription(e.target.value)}
+              bg="#faedcd"
             />
             <Input
               placeholder="Servings"
               type="number"
               value={serving}
-              onChange={(e) => {
-                const val = e.target.value;
-
-                if (val === "") {
-                  setServing("");
-                  return;
-                }
-
-                if (/^\d+$/.test(val)) {
-                  setServing(val);
-                } else {
-                  toast({
-                    status: "error",
-                    title: "Servings must be a whole number",
-                    duration: 2000,
-                  });
-                }
-              }}
+              onChange={(e) => setServing(e.target.value)}
+              bg="#faedcd"
             />
 
-            <Divider />
+            <Divider borderColor="#e9edc9" />
 
-            <Heading fontSize="lg">Ingredients</Heading>
+            <Heading fontSize="lg" color="#344e41">
+              Ingredients
+            </Heading>
             <AnimatePresence>
               {ingredients.map((ing, i) => (
                 <MotionBox
                   key={i}
                   as={SimpleGrid}
-                  columns={4} // ✅ changed from 3 to 4 (ingredient, qty, unit, delete)
+                  columns={4}
                   spacing={2}
                   alignItems="center"
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -317,6 +293,7 @@ export default function CreateCustomRecipePage() {
                   <Input
                     placeholder="Qty"
                     value={ing.quantity}
+                    bg="#faedcd"
                     onChange={(e) => {
                       const updated = [...ingredients];
                       updated[i].quantity = e.target.value;
@@ -337,22 +314,36 @@ export default function CreateCustomRecipePage() {
                     aria-label="Delete"
                     icon={<CloseIcon />}
                     size="sm"
-                    backgroundColor="#a32c2cff"
-                    _hover={{ bg: "#611b1bff", color: "white" }}
-                    colorScheme="whiteAlpha"
-                    variant="ghost"
-                    onClick={() => deleteIngredient(i)}
+                    bg="#d4a373"
+                    color="white"
+                    _hover={{ bg: "#344e41" }}
+                    onClick={() => {
+                      setIngredients(ingredients.filter((_, idx) => idx !== i));
+                    }}
                   />
                 </MotionBox>
               ))}
             </AnimatePresence>
-            <Button size="sm" onClick={addIngredient} bg="#cead7fff">
+            <Button
+              size="sm"
+              onClick={() =>
+                setIngredients([
+                  ...ingredients,
+                  { ingredient: "", quantity: "", unit: "" },
+                ])
+              }
+              bg="#d4a373"
+              color="white"
+              _hover={{ bg: "#ccd5ae", color: "black" }}
+            >
               + Add Ingredient
             </Button>
 
-            <Divider />
+            <Divider borderColor="#e9edc9" />
 
-            <Heading fontSize="lg">Steps</Heading>
+            <Heading fontSize="lg" color="#344e41">
+              Steps
+            </Heading>
             <AnimatePresence>
               {steps.map((st, i) => (
                 <MotionBox
@@ -367,6 +358,7 @@ export default function CreateCustomRecipePage() {
                   <Textarea
                     placeholder={`Step ${i + 1}`}
                     value={st}
+                    bg="#faedcd"
                     onChange={(e) => {
                       const updated = [...steps];
                       updated[i] = e.target.value;
@@ -377,16 +369,23 @@ export default function CreateCustomRecipePage() {
                     aria-label="Delete"
                     icon={<CloseIcon />}
                     size="sm"
-                    backgroundColor="#a32c2cff"
-                    _hover={{ bg: "#611b1bff", color: "white" }}
-                    colorScheme="whiteAlpha"
-                    variant="ghost"
-                    onClick={() => deleteStep(i)}
+                    bg="#d4a373"
+                    color="white"
+                    _hover={{ bg: "#344e41" }}
+                    onClick={() =>
+                      setSteps(steps.filter((_, idx) => idx !== i))
+                    }
                   />
                 </MotionBox>
               ))}
             </AnimatePresence>
-            <Button size="sm" onClick={addStep} bg="#cead7fff">
+            <Button
+              size="sm"
+              onClick={() => setSteps([...steps, ""])}
+              bg="#d4a373"
+              color="white"
+              _hover={{ bg: "#ccd5ae", color: "black" }}
+            >
               + Add Step
             </Button>
 
@@ -394,23 +393,24 @@ export default function CreateCustomRecipePage() {
               placeholder="Notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              bg="#faedcd"
             />
 
             <Button
-              bg="#3c5b3a"
+              bg="#344e41"
               color="white"
               size="lg"
-              _hover={{ bg: "#086b08ff", color: "yellow" }}
+              _hover={{ bg: "#ccd5ae", color: "black" }}
               onClick={handleSubmit}
             >
               Save Recipe
             </Button>
 
             <Button
-              bg="#a32c2cff"
-              color="black"
+              bg="#d4a373"
+              color="white"
               size="lg"
-              _hover={{ bg: "#611b1bff", color: "white" }}
+              _hover={{ bg: "#ccd5ae", color: "black" }}
               onClick={() => router.back()}
             >
               Cancel
@@ -421,19 +421,20 @@ export default function CreateCustomRecipePage() {
         {/* Right Panel Preview */}
         <MotionBox
           bg="white"
-          rounded="3xl"
-          shadow="2xl"
+          rounded="2xl"
+          shadow="lg"
           p={8}
           flex="1"
+          border="1px solid #e9edc9"
           display={{ base: "none", md: "block" }}
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Heading mb={4} color="#2d452c">
+          <Heading mb={4} color="#344e41">
             Live Preview 🧾
           </Heading>
 
-          <Text fontWeight="bold" fontSize="2xl">
+          <Text fontWeight="bold" fontSize="2xl" color="#344e41">
             {title || "Recipe Title"}
           </Text>
           <Text mb={2}>{recipeDescription || "Description goes here..."}</Text>
@@ -441,7 +442,7 @@ export default function CreateCustomRecipePage() {
             <b>Servings: </b> {serving || "-"}
           </Text>
 
-          <Heading size="md" mt={3}>
+          <Heading size="md" mt={3} color="#344e41">
             Ingredients
           </Heading>
           <ul>
@@ -455,7 +456,7 @@ export default function CreateCustomRecipePage() {
             )}
           </ul>
 
-          <Heading size="md" mt={4}>
+          <Heading size="md" mt={4} color="#344e41">
             Steps
           </Heading>
           <ol>
@@ -469,7 +470,7 @@ export default function CreateCustomRecipePage() {
             )}
           </ol>
 
-          <Heading size="md" mt={4}>
+          <Heading size="md" mt={4} color="#344e41">
             Notes
           </Heading>
           <Text>{notes || "-"}</Text>

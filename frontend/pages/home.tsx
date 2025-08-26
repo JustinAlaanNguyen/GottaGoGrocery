@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { FaStar } from "react-icons/fa";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -99,7 +98,7 @@ export default function UserHome() {
   }
 
   return (
-    <Box bg="#fbfaf8" minH="100vh" position="relative" overflow="hidden">
+    <Box bg="#ccd5ae" minH="100vh" position="relative" overflow="hidden">
       <Navbar />
 
       {/* Background Blobs */}
@@ -108,20 +107,21 @@ export default function UserHome() {
         w="350px"
         h="350px"
         borderRadius="full"
-        bg="#faeddb"
+        bg="#faedcd"
         top="65%"
-        left="-5%"
+        left="5%"
         zIndex={0}
         animate={floatingAnimation}
       />
+
       <MotionBox
         position="absolute"
         w="250px"
         h="250px"
         borderRadius="full"
-        bg="#cead7fff"
+        bg="#d4a373"
         top="10%"
-        left="75%"
+        left="80%"
         zIndex={0}
         animate={floatingAnimation}
       />
@@ -139,7 +139,7 @@ export default function UserHome() {
       >
         {/* Greeting */}
         <MotionBox {...fadeInUp}>
-          <Heading as="h1" fontSize="4xl" mb={2} color="#2d452c">
+          <Heading as="h1" fontSize="4xl" mb={2} color="#344e41">
             Hi {username}! 👋 Welcome back!
           </Heading>
         </MotionBox>
@@ -151,7 +151,7 @@ export default function UserHome() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
         >
-          <Heading as="h2" fontSize="2xl" mb={4} mt={8} color="#2d452c">
+          <Heading as="h2" fontSize="2xl" mb={4} mt={8} color="#344e41">
             Quick Actions
           </Heading>
         </MotionBox>
@@ -176,10 +176,10 @@ export default function UserHome() {
             >
               <Button
                 size="lg"
-                bg="#3c5b3a"
+                bg="#d4a373"
                 color="white"
                 borderRadius="xl"
-                _hover={{ bg: "#2d452c" }}
+                _hover={{ bg: "#ccd5ae", color: "black" }}
                 w="100%"
                 onClick={() => router.push(action.route)}
               >
@@ -191,36 +191,28 @@ export default function UserHome() {
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                   style={{ position: "absolute", top: 15, right: 13 }}
-                >
-                  <FaStar color="#FFD700" size="18" />
-                </motion.div>
+                ></motion.div>
               )}
               {i === 1 && (
                 <motion.div
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                   style={{ position: "absolute", top: 15, right: 25 }}
-                >
-                  <FaStar color="#FFD700" size="18" />
-                </motion.div>
+                ></motion.div>
               )}
               {i === 2 && (
                 <motion.div
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                   style={{ position: "absolute", top: 15, right: 15 }}
-                >
-                  <FaStar color="#FFD700" size="18" />
-                </motion.div>
+                ></motion.div>
               )}
               {i === 3 && (
                 <motion.div
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                   style={{ position: "absolute", top: 15, right: 5 }}
-                >
-                  <FaStar color="#FFD700" size="18" />
-                </motion.div>
+                ></motion.div>
               )}
             </motion.div>
           ))}
@@ -233,7 +225,7 @@ export default function UserHome() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
         >
-          <Heading as="h2" fontSize="2xl" mb={4} mt={8} color="#2d452c">
+          <Heading as="h2" fontSize="2xl" mb={4} mt={8} color="#344e41">
             Your Stats
           </Heading>
         </MotionBox>
@@ -241,7 +233,7 @@ export default function UserHome() {
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={10}>
           <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
             <CardBody textAlign="center">
-              <Text fontSize="xl" color="#3c5b3a">
+              <Text fontSize="xl" color="#344e41">
                 {customCount > 0
                   ? `You’ve created ${customCount} custom recipe${
                       customCount > 1 ? "s" : ""
@@ -253,7 +245,7 @@ export default function UserHome() {
 
           <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
             <CardBody textAlign="center">
-              <Text fontSize="xl" color="#3c5b3a">
+              <Text fontSize="xl" color="#344e41">
                 {savedCount > 0
                   ? `You’ve saved ${savedCount} recipe${
                       savedCount > 1 ? "s" : ""
@@ -265,7 +257,7 @@ export default function UserHome() {
 
           <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
             <CardBody textAlign="center">
-              <Text fontSize="xl" color="#3c5b3a">
+              <Text fontSize="xl" color="#344e41">
                 {customCount + savedCount > 0
                   ? `You’ve cooked ${customCount + savedCount} recipe${
                       customCount + savedCount > 1 ? "s" : ""
@@ -283,7 +275,7 @@ export default function UserHome() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
         >
-          <Heading as="h2" fontSize="2xl" mb={4} mt={8} color="#2d452c">
+          <Heading as="h2" fontSize="2xl" mb={4} mt={8} color="#344e41">
             Recent Activity
           </Heading>
         </MotionBox>
@@ -299,7 +291,7 @@ export default function UserHome() {
                 borderRadius="lg"
               >
                 <CardBody>
-                  <Text fontWeight="bold" color="#3c5b3a">
+                  <Text fontWeight="bold" color="#344e41">
                     {item.title || "Saved recipe"}
                   </Text>
                   {item.recipeLink && (
@@ -318,7 +310,7 @@ export default function UserHome() {
           </VStack>
         ) : (
           <MotionBox {...fadeInUp}>
-            <Text fontSize="lg" color="#3c5b3a">
+            <Text fontSize="lg" color="#344e41">
               You have no recent activity. Start by saving or creating a recipe!
             </Text>
           </MotionBox>

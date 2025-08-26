@@ -24,8 +24,7 @@ type Recipe = {
   id: number;
   title: string;
   image: string;
-  missedIngredientCount: number;
-  usedIngredientCount: number;
+  ingredientCount: number;
 };
 
 export default function SearchRecipe() {
@@ -33,7 +32,7 @@ export default function SearchRecipe() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const cutleryEmojis = ["🍴", "🥄", "🔪"];
+  const cutleryEmojis = ["🍴", "🥄"];
 
   const cutlery = useMemo(() => {
     return [...Array(30)].map((_, i) => {
@@ -55,7 +54,7 @@ export default function SearchRecipe() {
             opacity: [0.3, 1, 0.3],
             y: [0, -10, 0],
             scale: [1, 1.3, 1],
-            rotate: [0, 15, -15, 0], // slight rotation for a floating feel
+            rotate: [0, 15, -15, 0],
           }}
           transition={{
             duration,
@@ -75,27 +74,49 @@ export default function SearchRecipe() {
     setLoading(true);
     try {
       const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
+
+      // Step 1: Search recipes
       const res = await axios.get(
         `https://api.spoonacular.com/recipes/complexSearch`,
         {
           params: {
             query: searchTerm,
             number: 6,
-            addRecipeInformation: true,
-            apiKey: apiKey,
+            sort: "relevant",
+            apiKey,
           },
         }
       );
 
-      const results = res.data.results.map((r: any) => ({
-        id: r.id,
-        title: r.title,
-        image: r.image,
-        usedIngredientCount: r.usedIngredientCount || 0,
-        missedIngredientCount: r.missedIngredientCount || 0,
-      }));
+      const recipesData = res.data.results;
 
-      setRecipes(results);
+      // Step 2: Fetch full info for each recipe to get ingredients
+      const detailedRecipes = await Promise.all(
+        recipesData.map(async (r: any) => {
+          try {
+            const details = await axios.get(
+              `https://api.spoonacular.com/recipes/${r.id}/information`,
+              { params: { apiKey } }
+            );
+            return {
+              id: r.id,
+              title: r.title,
+              image: r.image,
+              ingredientCount: details.data.extendedIngredients?.length || 0,
+            };
+          } catch (error) {
+            console.error("Error fetching details:", error);
+            return {
+              id: r.id,
+              title: r.title,
+              image: r.image,
+              ingredientCount: 0,
+            };
+          }
+        })
+      );
+
+      setRecipes(detailedRecipes);
     } catch (err) {
       console.error("API Error:", err);
     } finally {
@@ -104,10 +125,12 @@ export default function SearchRecipe() {
   };
 
   return (
-    <Box minH="100vh" p={6} bg="#fbfaf8" position="relative" overflow="hidden">
+    <Box minH="100vh" p={6} bg="#ccd5ae" position="relative" overflow="hidden">
+      {/* Floating background icons */}
       <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
         {cutlery}
       </Box>
+
       <Navbar />
 
       <Heading mb={6} textAlign="center" color="#2d452c">
@@ -123,6 +146,7 @@ export default function SearchRecipe() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           maxW="500px"
+          focusBorderColor="#cead7f"
         />
         <Button
           onClick={handleSearch}
@@ -141,7 +165,14 @@ export default function SearchRecipe() {
       ) : (
         <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={6}>
           {recipes.map((recipe) => (
-            <Card key={recipe.id} bg="white" borderRadius="xl" shadow="md">
+            <Card
+              key={recipe.id}
+              bg="white"
+              borderRadius="xl"
+              shadow="md"
+              _hover={{ transform: "scale(1.02)" }}
+              transition="0.2s"
+            >
               <CardBody>
                 <Image
                   src={recipe.image}
@@ -152,9 +183,8 @@ export default function SearchRecipe() {
                 <Text fontWeight="bold" fontSize="lg" color="#3c5b3a">
                   {recipe.title}
                 </Text>
-                <Text color="gray.600">
-                  Ingredients:{" "}
-                  {recipe.usedIngredientCount + recipe.missedIngredientCount}
+                <Text color="#2d452c">
+                  Ingredients: {recipe.ingredientCount}
                 </Text>
               </CardBody>
             </Card>

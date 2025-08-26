@@ -1,0 +1,19 @@
+/* 1) Register the font */
+@font-face {
+  font-family: "Kugile";
+  src: url("/fonts/Kugile_Demo.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2) Apply to the whole app */
+html, body, #__next {
+  height: 100%;
+  font-family: "Kugile", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Optional: make sure everything inherits cleanly */
+* {
+  font-family: inherit;
+}

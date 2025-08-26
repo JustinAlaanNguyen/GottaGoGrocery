@@ -88,7 +88,14 @@ const IngredientAutocompleteInput: React.FC<AutoProps> = ({
   return (
     <Popover isOpen={isOpen}>
       <PopoverTrigger>
-        <Input placeholder="Ingredient" value={query} onChange={handleChange} />
+        <Input
+          placeholder="Ingredient"
+          value={query}
+          onChange={handleChange}
+          bg="white"
+          borderColor="#cead7f"
+          _focus={{ borderColor: "#2d452c", boxShadow: "0 0 0 1px #2d452c" }}
+        />
       </PopoverTrigger>
       <PopoverContent maxH="200px" overflowY="auto" zIndex={999}>
         <List>
@@ -97,7 +104,7 @@ const IngredientAutocompleteInput: React.FC<AutoProps> = ({
               key={name}
               px={3}
               py={2}
-              _hover={{ bg: "gray.100", cursor: "pointer" }}
+              _hover={{ bg: "#fbfaf8", color: "#2d452c", cursor: "pointer" }}
               onClick={() => handleSelect(name)}
             >
               {name}
@@ -126,7 +133,6 @@ export default function EditCustomRecipePage() {
   const [floatingIcons, setFloatingIcons] = useState<React.ReactElement[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Redirect if not logged in
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
@@ -135,7 +141,6 @@ export default function EditCustomRecipePage() {
     }
   }, [router]);
 
-  // Load existing recipe data
   useEffect(() => {
     if (!params?.id) return;
     const fetchRecipe = async () => {
@@ -144,14 +149,13 @@ export default function EditCustomRecipePage() {
           `http://localhost:5000/api/custom-recipes/${params.id}`
         );
         const data = res.data;
-
         setTitle(data.title);
         setRecipeDescription(data.recipeDescription || "");
         setServing(data.serving || "");
         setIngredients(
           data.ingredients?.length
             ? data.ingredients
-            : [{ ingredient: "", quantity: "" }]
+            : [{ ingredient: "", quantity: "", unit: "" }]
         );
         setSteps(data.steps?.map((s: any) => s.description) || [""]);
         setNotes(data.notes || "");
@@ -164,7 +168,6 @@ export default function EditCustomRecipePage() {
     fetchRecipe();
   }, [params?.id, toast]);
 
-  // Floating icons
   useEffect(() => {
     const items = [...Array(45)].map((_, i) => {
       const top = `${Math.random() * 90}%`;
@@ -172,7 +175,6 @@ export default function EditCustomRecipePage() {
       const icon =
         cookingEmojis[Math.floor(Math.random() * cookingEmojis.length)];
       const rotation = Math.random() * 360;
-
       return (
         <MotionBox
           key={i}
@@ -196,10 +198,8 @@ export default function EditCustomRecipePage() {
       ...ingredients,
       { ingredient: "", quantity: "", unit: "" },
     ]);
-
   const deleteIngredient = (i: number) =>
     setIngredients(ingredients.filter((_, idx) => idx !== i));
-
   const addStep = () => setSteps([...steps, ""]);
   const deleteStep = (i: number) =>
     setSteps(steps.filter((_, idx) => idx !== i));
@@ -219,14 +219,10 @@ export default function EditCustomRecipePage() {
       });
     }
 
-    // ✅ Remove empty steps before sending
-    const filteredSteps = steps.filter((s) => s.trim() !== "");
-
     try {
       const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-
       await axios.put(`http://localhost:5000/api/custom-recipes/${params.id}`, {
-        userId: storedUser.id, // ✅ include userId
+        userId: storedUser.id,
         title,
         recipeDescription,
         serving,
@@ -234,7 +230,6 @@ export default function EditCustomRecipePage() {
         steps,
         notes,
       });
-
       toast({ status: "success", title: "Recipe updated!" });
       router.push(`/custom-recipes/${params.id}`);
     } catch (err) {
@@ -246,10 +241,8 @@ export default function EditCustomRecipePage() {
   if (loading) return null;
 
   return (
-    <Box bg="#fbfaf8" minH="100vh">
+    <Box bg="#ccd5ae" minH="100vh">
       <Navbar />
-
-      {/* Floating background */}
       <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
         {floatingIcons}
       </Box>
@@ -264,13 +257,14 @@ export default function EditCustomRecipePage() {
         zIndex={1}
         direction={{ base: "column", md: "row" }}
       >
-        {/* Left panel - Edit form */}
+        {/* Left panel */}
         <MotionBox
           flex="1"
           bg="white"
-          rounded="3xl"
-          shadow="2xl"
+          rounded="2xl"
+          shadow="lg"
           p={10}
+          border="1px solid #cead7f"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -283,40 +277,32 @@ export default function EditCustomRecipePage() {
               placeholder="Recipe Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              bg="#faedcd"
+              borderColor="#cead7f"
+              _focus={{ borderColor: "#2d452c" }}
             />
             <Textarea
               placeholder="Short Description"
               value={recipeDescription}
               onChange={(e) => setRecipeDescription(e.target.value)}
+              bg="#faedcd"
+              borderColor="#cead7f"
+              _focus={{ borderColor: "#2d452c" }}
             />
             <Input
               placeholder="Servings"
               type="number"
               value={serving}
-              onChange={(e) => {
-                const val = e.target.value;
-
-                // Allow empty string so field can be cleared
-                if (val === "") {
-                  setServing("");
-                  return;
-                }
-
-                // Only allow whole positive numbers
-                if (/^\d+$/.test(val)) {
-                  setServing(val);
-                } else {
-                  toast({
-                    status: "error",
-                    title: "Servings must be a whole number",
-                    duration: 2000,
-                  });
-                }
-              }}
+              onChange={(e) => setServing(e.target.value)}
+              bg="#faedcd"
+              borderColor="#cead7f"
+              _focus={{ borderColor: "#2d452c" }}
             />
 
-            <Divider />
-            <Heading fontSize="lg">Ingredients</Heading>
+            <Divider borderColor="#cead7f" />
+            <Heading fontSize="lg" color="#2d452c">
+              Ingredients
+            </Heading>
             <AnimatePresence>
               {ingredients.map((ing, i) => (
                 <MotionBox
@@ -345,6 +331,9 @@ export default function EditCustomRecipePage() {
                       updated[i].quantity = e.target.value;
                       setIngredients(updated);
                     }}
+                    bg="#faedcd"
+                    borderColor="#cead7f"
+                    _focus={{ borderColor: "#2d452c" }}
                   />
                   <UnitAutocompleteInput
                     value={ing.unit}
@@ -354,26 +343,31 @@ export default function EditCustomRecipePage() {
                       setIngredients(updated);
                     }}
                   />
-
                   <IconButton
                     aria-label="Delete"
                     icon={<CloseIcon />}
                     size="sm"
-                    backgroundColor="#a32c2cff"
-                    _hover={{ bg: "#611b1bff", color: "white" }}
-                    colorScheme="whiteAlpha"
-                    variant="ghost"
+                    bg="#a32c2c"
+                    color="white"
+                    _hover={{ bg: "#611b1b" }}
                     onClick={() => deleteIngredient(i)}
                   />
                 </MotionBox>
               ))}
             </AnimatePresence>
-            <Button size="sm" onClick={addIngredient} bg="#cead7fff">
+            <Button
+              size="sm"
+              onClick={addIngredient}
+              bg="#cead7f"
+              color="black"
+            >
               + Add Ingredient
             </Button>
 
-            <Divider />
-            <Heading fontSize="lg">Steps</Heading>
+            <Divider borderColor="#cead7f" />
+            <Heading fontSize="lg" color="#2d452c">
+              Steps
+            </Heading>
             <AnimatePresence>
               {steps.map((st, i) => (
                 <MotionBox
@@ -393,21 +387,23 @@ export default function EditCustomRecipePage() {
                       updated[i] = e.target.value;
                       setSteps(updated);
                     }}
+                    bg="#faedcd"
+                    borderColor="#cead7f"
+                    _focus={{ borderColor: "#2d452c" }}
                   />
                   <IconButton
                     aria-label="Delete"
                     icon={<CloseIcon />}
                     size="sm"
-                    backgroundColor="#a32c2cff"
-                    _hover={{ bg: "#611b1bff", color: "white" }}
-                    colorScheme="whiteAlpha"
-                    variant="ghost"
+                    bg="#a32c2c"
+                    color="white"
+                    _hover={{ bg: "#611b1b" }}
                     onClick={() => deleteStep(i)}
                   />
                 </MotionBox>
               ))}
             </AnimatePresence>
-            <Button size="sm" onClick={addStep} bg="#cead7fff">
+            <Button size="sm" onClick={addStep} bg="#cead7f" color="black">
               + Add Step
             </Button>
 
@@ -415,23 +411,26 @@ export default function EditCustomRecipePage() {
               placeholder="Notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              bg="#faedcd"
+              borderColor="#cead7f"
+              _focus={{ borderColor: "#2d452c" }}
             />
 
             <Button
               bg="#3c5b3a"
               color="white"
               size="lg"
-              _hover={{ bg: "#086b08ff", color: "yellow" }}
+              _hover={{ bg: "#2d452c" }}
               onClick={handleUpdate}
             >
               Update Recipe
             </Button>
 
             <Button
-              bg="#a32c2cff"
+              bg="#a32c2c"
               color="white"
               size="lg"
-              _hover={{ bg: "#611b1bff", color: "white" }}
+              _hover={{ bg: "#611b1b" }}
               onClick={async () => {
                 if (
                   !confirm(
@@ -445,7 +444,7 @@ export default function EditCustomRecipePage() {
                     `http://localhost:5000/api/custom-recipes/${params.id}`
                   );
                   toast({ status: "success", title: "Recipe deleted" });
-                  router.push("/recipes/saved-recipes"); // ✅ go back to recipe list
+                  router.push("/recipes/saved-recipes");
                 } catch (err) {
                   console.error("Error deleting recipe:", err);
                   toast({ status: "error", title: "Failed to delete recipe" });
@@ -456,10 +455,10 @@ export default function EditCustomRecipePage() {
             </Button>
 
             <Button
-              bg="#a32c2cff"
+              bg="#cead7f"
               color="black"
               size="lg"
-              _hover={{ bg: "#611b1bff", color: "white" }}
+              _hover={{ bg: "#2d452c", color: "white" }}
               onClick={() => router.back()}
             >
               Cancel
@@ -470,10 +469,11 @@ export default function EditCustomRecipePage() {
         {/* Right panel - Live preview */}
         <MotionBox
           bg="white"
-          rounded="3xl"
-          shadow="2xl"
+          rounded="2xl"
+          shadow="lg"
           p={8}
           flex="1"
+          border="1px solid #cead7f"
           display={{ base: "none", md: "block" }}
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -481,7 +481,7 @@ export default function EditCustomRecipePage() {
           <Heading mb={4} color="#2d452c">
             Live Preview 🧾
           </Heading>
-          <Text fontWeight="bold" fontSize="2xl">
+          <Text fontWeight="bold" fontSize="2xl" color="#3c5b3a">
             {title || "Recipe Title"}
           </Text>
           <Text mb={2}>{recipeDescription || "Description goes here..."}</Text>
@@ -489,7 +489,7 @@ export default function EditCustomRecipePage() {
             <b>Servings: </b> {serving || "-"}
           </Text>
 
-          <Heading size="md" mt={3}>
+          <Heading size="md" mt={3} color="#2d452c">
             Ingredients
           </Heading>
           <ul>
@@ -503,7 +503,7 @@ export default function EditCustomRecipePage() {
             )}
           </ul>
 
-          <Heading size="md" mt={4}>
+          <Heading size="md" mt={4} color="#2d452c">
             Steps
           </Heading>
           <ol>
@@ -517,7 +517,7 @@ export default function EditCustomRecipePage() {
             )}
           </ol>
 
-          <Heading size="md" mt={4}>
+          <Heading size="md" mt={4} color="#2d452c">
             Notes
           </Heading>
           <Text>{notes || "-"}</Text>

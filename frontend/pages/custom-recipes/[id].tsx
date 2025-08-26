@@ -96,7 +96,6 @@ export default function CustomRecipeDetails() {
   return (
     <Box bg="#ccd5ae" minH="100vh">
       <Navbar />
-
       <Flex justify="center" px={4} py={10}>
         <Box
           bg="white"

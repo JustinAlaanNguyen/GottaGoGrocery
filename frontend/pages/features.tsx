@@ -70,11 +70,11 @@ const fadeInUp = {
 
 export default function FeaturesPage() {
   const cardBg = useColorModeValue("white", "#2d452c");
-  const textColor = useColorModeValue("#3c5b3a", "white");
+  const textColor = useColorModeValue("#344e41", "white");
 
   return (
     <Box
-      bg="#fbfaf8"
+      bg="#ccd5ae"
       minH="100vh"
       py={12}
       px={6}
@@ -91,10 +91,10 @@ export default function FeaturesPage() {
         textAlign="center"
         mb={12}
       >
-        <Heading fontSize="4xl" color="#2d452c" mb={4}>
+        <Heading fontSize="4xl" color="#344e41" mb={4}>
           Everything GottaGoGrocery Can Do
         </Heading>
-        <Text fontSize="lg" color="#3c5b3a">
+        <Text fontSize="lg" color="#2d452c">
           From recipe inspiration to grocery prep, explore all the smart
           features that make your kitchen life easier.
         </Text>
@@ -113,22 +113,22 @@ export default function FeaturesPage() {
             bg={cardBg}
             p={6}
             borderRadius="xl"
-            shadow="md"
+            shadow="lg"
+            border="1px solid #e9edc9"
             align="start"
             whileHover={{ scale: 1.03 }}
             transition={{ duration: 0.3 }}
             spacing={4}
           >
             <Box
-              bg="#cead7fff"
+              bg="#d4a373"
               p={3}
               borderRadius="full"
-              boxShadow="0 0 15px #cead7fff"
-              animation="pulse 2s infinite"
+              boxShadow="0 0 15px #faedcd"
             >
-              <Icon as={feature.icon} w={6} h={6} color="#2d452c" />
+              <Icon as={feature.icon} w={6} h={6} color="#fbfaf8" />
             </Box>
-            <Heading size="md" color="#2d452c">
+            <Heading size="md" color="#344e41">
               {feature.title}
             </Heading>
             <Text color={textColor}>{feature.description}</Text>

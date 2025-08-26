@@ -26,7 +26,7 @@ const fadeInUp = {
   transition: { duration: 0.5 },
 };
 
-// 🔸 NEW floating animation
+// 🌿 Floating animation
 const floatingEmojiAnimation = {
   y: [0, 15, 0, 15, 0],
   rotate: [0, 15, 0, -15, 0],
@@ -38,7 +38,7 @@ const floatingEmojiAnimation = {
   },
 };
 
-// 🔸 Emojis related to SAVED recipes/snacks
+// 🌿 Emojis for saved recipes
 const savedEmojis = ["📖", "👨‍🍳", "🥣", "✨", "🔥", "🥄", "🥗", "🍲"];
 
 type Recipe = {
@@ -77,7 +77,7 @@ export default function SavedRecipesPage() {
     fetchData();
   }, [router]);
 
-  // 🔸 Generate floating saved-food icons
+  // 🌿 Floating icons
   useEffect(() => {
     const icons = [...Array(25)].map((_, i) => {
       const top = `${Math.random() * 90}%`;
@@ -105,8 +105,8 @@ export default function SavedRecipesPage() {
 
   if (loading) {
     return (
-      <Flex justify="center" align="center" minH="100vh" bg="#fbfaf8">
-        <Spinner size="xl" color="#3c5b3a" />
+      <Flex justify="center" align="center" minH="100vh" bg="#fefae0">
+        <Spinner size="xl" color="#344e41" />
       </Flex>
     );
   }
@@ -115,25 +115,31 @@ export default function SavedRecipesPage() {
   const savedOnly = recipes.filter((r) => r.type === "saved");
 
   return (
-    <Box bg="#fbfaf8" minH="100vh" position="relative">
+    <Box bg="#ccd5ae" minH="100vh" position="relative">
       <Navbar />
 
-      {/* 🔸 Render icons behind the content */}
+      {/* 🌿 Floating icons */}
       <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
         {floatingIcons}
       </Box>
 
       <Box maxW="7xl" mx="auto" py={10} px={6} position="relative" zIndex={1}>
-        <Heading fontSize="4xl" mb={6} color="#2d452c">
+        <Heading fontSize="4xl" mb={6} color="#344e41">
           Your Recipes 🍽️
         </Heading>
 
-        <Button mb={6} onClick={() => setSorted((p) => !p)} bg="#cead7fff">
+        <Button
+          mb={6}
+          onClick={() => setSorted((p) => !p)}
+          bg="#d4a373"
+          color="white"
+          _hover={{ bg: "#ccd5ae", color: "black" }}
+        >
           {sorted ? "See All Mixed" : "Sort Custom Recipes"}
         </Button>
 
         {recipes.length === 0 ? (
-          <Text fontSize="lg">
+          <Text fontSize="lg" color="#344e41">
             You haven’t saved or created any recipes yet.
           </Text>
         ) : (
@@ -150,8 +156,9 @@ export default function SavedRecipesPage() {
                       {...fadeInUp}
                       transition={{ delay: idx * 0.05 }}
                       bg="white"
-                      shadow="md"
-                      borderRadius="xl"
+                      shadow="lg"
+                      borderRadius="2xl"
+                      border="1px solid #e9edc9"
                       whileHover={{ scale: 1.03 }}
                     >
                       {recipe.type === "saved" && (
@@ -164,17 +171,19 @@ export default function SavedRecipesPage() {
                           w="100%"
                           h="200px"
                           objectFit="cover"
+                          borderTopRadius="2xl"
                         />
                       )}
                       <Box p={4}>
                         <Flex justify="space-between" mb={2}>
-                          <Heading size="md" color="#2d452c">
+                          <Heading size="md" color="#344e41">
                             {recipe.title}
                           </Heading>
                           <Badge
-                            colorScheme={
-                              recipe.type === "custom" ? "green" : "yellow"
+                            bg={
+                              recipe.type === "custom" ? "#ccd5ae" : "#faedcd"
                             }
+                            color="#344e41"
                             borderRadius="full"
                             px={3}
                           >
@@ -183,14 +192,14 @@ export default function SavedRecipesPage() {
                         </Flex>
                         <Button
                           size="sm"
-                          bg="#3c5b3a"
+                          bg="#344e41"
                           color="white"
-                          _hover={{ bg: "#2d452c" }}
+                          _hover={{ bg: "#ccd5ae", color: "black" }}
                           onClick={() => {
                             if (recipe.type === "custom") {
-                              router.push(`/custom-recipes/${recipe.id}`); // ✅ Custom recipe details page
+                              router.push(`/custom-recipes/${recipe.id}`);
                             } else {
-                              router.push(`/recipes/${recipe.id}`); // ✅ Saved recipe details page
+                              router.push(`/recipes/${recipe.id}`);
                             }
                           }}
                         >
@@ -205,7 +214,7 @@ export default function SavedRecipesPage() {
 
             {sorted && (
               <>
-                <Heading size="lg" mt={8} mb={4}>
+                <Heading size="lg" mt={8} mb={4} color="#344e41">
                   Custom Recipes
                 </Heading>
                 <SimpleGrid
@@ -219,17 +228,19 @@ export default function SavedRecipesPage() {
                         {...fadeInUp}
                         transition={{ delay: idx * 0.05 }}
                         bg="white"
-                        shadow="md"
-                        borderRadius="xl"
+                        shadow="lg"
+                        border="1px solid #e9edc9"
+                        borderRadius="2xl"
                         whileHover={{ scale: 1.03 }}
                       >
                         <Box p={4}>
                           <Flex justify="space-between" mb={2}>
-                            <Heading size="md" color="#2d452c">
+                            <Heading size="md" color="#344e41">
                               {r.title}
                             </Heading>
                             <Badge
-                              colorScheme="green"
+                              bg="#ccd5ae"
+                              color="#344e41"
                               borderRadius="full"
                               px={3}
                             >
@@ -238,16 +249,12 @@ export default function SavedRecipesPage() {
                           </Flex>
                           <Button
                             size="sm"
-                            bg="#3c5b3a"
+                            bg="#344e41"
                             color="white"
-                            _hover={{ bg: "#2d452c" }}
-                            onClick={() => {
-                              if (r.type === "custom") {
-                                router.push(`/custom-recipes/${r.id}`);
-                              } else {
-                                router.push(`/recipes/${r.id}`);
-                              }
-                            }}
+                            _hover={{ bg: "#ccd5ae", color: "black" }}
+                            onClick={() =>
+                              router.push(`/custom-recipes/${r.id}`)
+                            }
                           >
                             View
                           </Button>
@@ -257,7 +264,7 @@ export default function SavedRecipesPage() {
                   </AnimatePresence>
                 </SimpleGrid>
 
-                <Heading size="lg" mt={12} mb={4}>
+                <Heading size="lg" mt={12} mb={4} color="#344e41">
                   Saved Recipes
                 </Heading>
                 <SimpleGrid
@@ -271,8 +278,9 @@ export default function SavedRecipesPage() {
                         {...fadeInUp}
                         transition={{ delay: idx * 0.05 }}
                         bg="white"
-                        shadow="md"
-                        borderRadius="xl"
+                        shadow="lg"
+                        border="1px solid #e9edc9"
+                        borderRadius="2xl"
                         whileHover={{ scale: 1.03 }}
                       >
                         <Image
@@ -284,32 +292,28 @@ export default function SavedRecipesPage() {
                           w="100%"
                           h="200px"
                           objectFit="cover"
+                          borderTopRadius="2xl"
                         />
                         <Box p={4}>
                           <Flex justify="space-between" mb={2}>
-                            <Heading size="md" color="#2d452c">
+                            <Heading size="md" color="#344e41">
                               {r.title}
                             </Heading>
                             <Badge
-                              colorScheme="yellow"
+                              bg="#faedcd"
+                              color="#344e41"
                               borderRadius="full"
-                              px={2}
+                              px={3}
                             >
                               Saved
                             </Badge>
                           </Flex>
                           <Button
                             size="sm"
-                            bg="#3c5b3a"
+                            bg="#344e41"
                             color="white"
-                            _hover={{ bg: "#2d452c" }}
-                            onClick={() => {
-                              if (r.type === "custom") {
-                                router.push(`/custom-recipes/${r.id}`);
-                              } else {
-                                router.push(`/recipes/${r.id}`);
-                              }
-                            }}
+                            _hover={{ bg: "#ccd5ae", color: "black" }}
+                            onClick={() => router.push(`/recipes/${r.id}`)}
                           >
                             View
                           </Button>
