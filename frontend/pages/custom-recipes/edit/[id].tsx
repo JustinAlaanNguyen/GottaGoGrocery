@@ -223,7 +223,10 @@ export default function EditCustomRecipePage() {
     const filteredSteps = steps.filter((s) => s.trim() !== "");
 
     try {
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
       await axios.put(`http://localhost:5000/api/custom-recipes/${params.id}`, {
+        userId: storedUser.id, // ✅ include userId
         title,
         recipeDescription,
         serving,
@@ -231,6 +234,7 @@ export default function EditCustomRecipePage() {
         steps,
         notes,
       });
+
       toast({ status: "success", title: "Recipe updated!" });
       router.push(`/custom-recipes/${params.id}`);
     } catch (err) {
@@ -441,7 +445,7 @@ export default function EditCustomRecipePage() {
                     `http://localhost:5000/api/custom-recipes/${params.id}`
                   );
                   toast({ status: "success", title: "Recipe deleted" });
-                  router.push("/custom-recipes"); // ✅ go back to recipe list
+                  router.push("/recipes/saved-recipes"); // ✅ go back to recipe list
                 } catch (err) {
                   console.error("Error deleting recipe:", err);
                   toast({ status: "error", title: "Failed to delete recipe" });

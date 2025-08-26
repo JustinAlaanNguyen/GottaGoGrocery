@@ -2,7 +2,6 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/custom-recipes/[id]": "pages/custom-recipes/[id].js",
-  "/custom-recipes/edit/[id]": "pages/custom-recipes/edit/[id].js",
-  "/home": "pages/home.js"
+  "/recipes/saved-recipes": "pages/recipes/saved-recipes.js",
+  "/custom-recipes/[id]": "pages/custom-recipes/[id].js"
 }

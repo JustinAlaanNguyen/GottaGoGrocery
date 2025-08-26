@@ -13,12 +13,9 @@ import {
   Flex,
   Spinner,
   Divider,
-  Badge,
   Grid,
   GridItem,
 } from "@chakra-ui/react";
-import { motion } from "framer-motion";
-import { FaClipboardList, FaUtensils, FaCheck } from "react-icons/fa";
 
 type Ingredient = {
   id: number;
@@ -41,34 +38,11 @@ type Recipe = {
   title: string;
   recipeDescription: string;
   serving: number;
-  notes: string | null;
+  notes?: string | null;
   created_at: string;
   updated_at: string;
   ingredients: Ingredient[];
   steps: Step[];
-};
-
-const MotionBox = motion(Box);
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: "easeOut" },
-};
-
-const floatingAnimation = {
-  y: [0, -15, 0, 15, 0],
-  transition: {
-    duration: 10,
-    repeat: Infinity,
-    ease: "easeInOut",
-  },
-};
-
-const sparkleAnimation = {
-  scale: [1, 1.5, 1],
-  opacity: [0.3, 1, 0.3],
-  transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
 };
 
 export default function CustomRecipeDetails() {
@@ -84,7 +58,13 @@ export default function CustomRecipeDetails() {
         const res = await axios.get(
           `http://localhost:5000/api/custom-recipes/${id}`
         );
-        setRecipe(res.data);
+
+        const data = res.data;
+        if (data.note && !data.notes) {
+          data.notes = data.note;
+        }
+
+        setRecipe(data);
       } catch (error) {
         console.error("Error fetching recipe:", error);
       } finally {
@@ -97,16 +77,16 @@ export default function CustomRecipeDetails() {
 
   if (loading) {
     return (
-      <Flex justify="center" align="center" minH="100vh" bg="#fbfaf8">
-        <Spinner size="xl" color="#3c5b3a" />
+      <Flex justify="center" align="center" minH="100vh" bg="#fefae0">
+        <Spinner size="xl" color="#d4a373" />
       </Flex>
     );
   }
 
   if (!recipe) {
     return (
-      <Flex justify="center" align="center" minH="100vh" bg="#fbfaf8">
-        <Text fontSize="xl" color="#2d452c">
+      <Flex justify="center" align="center" minH="100vh" bg="#fefae0">
+        <Text fontSize="xl" color="#d4a373">
           Recipe not found.
         </Text>
       </Flex>
@@ -114,223 +94,135 @@ export default function CustomRecipeDetails() {
   }
 
   return (
-    <Box bg="#fbfaf8" minH="100vh" position="relative" overflow="hidden">
+    <Box bg="#ccd5ae" minH="100vh">
       <Navbar />
 
-      {/* Background Blobs */}
-      <MotionBox
-        position="absolute"
-        w="450px"
-        h="450px"
-        borderRadius="full"
-        bg="#fae0c3"
-        top="5%"
-        left="-8%"
-        zIndex={0}
-        animate={floatingAnimation}
-        filter="blur(30px)"
-        opacity={0.85}
-      />
-      <MotionBox
-        position="absolute"
-        w="350px"
-        h="350px"
-        borderRadius="full"
-        bg="#d4a86a"
-        top="70%"
-        left="75%"
-        zIndex={0}
-        animate={floatingAnimation}
-        filter="blur(40px)"
-        opacity={0.8}
-      />
-
-      {/* Sparkles ✨ */}
-      {Array.from({ length: 15 }).map((_, i) => (
-        <motion.div
-          key={i}
-          style={{
-            position: "absolute",
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            width: "6px",
-            height: "6px",
-            borderRadius: "50%",
-            background: "white",
-            opacity: 0.6,
-          }}
-          animate={sparkleAnimation}
-        />
-      ))}
-
-      {/* Recipe Container */}
-      <Flex justify="center" px={4} py={10} position="relative" zIndex={1}>
-        <MotionBox
-          {...fadeInUp}
-          bg="#2d452c"
-          color="white"
+      <Flex justify="center" px={4} py={10}>
+        <Box
+          bg="white"
           borderRadius="2xl"
           p={10}
           w="100%"
-          maxW="1000px"
-          boxShadow="2xl"
+          maxW="900px"
+          boxShadow="lg"
         >
-          {/* Header */}
+          {/* Title */}
           <Heading
             as="h1"
-            fontSize="5xl"
+            fontSize="3xl"
             mb={2}
             textAlign="center"
-            bgGradient="linear(to-r, green.100, yellow.200)"
-            bgClip="text"
+            color="#344e41"
           >
             {recipe.title}
           </Heading>
-          <Text fontSize="lg" mb={4} textAlign="center" color="whiteAlpha.800">
+          <Text fontSize="lg" mb={6} textAlign="center">
             {recipe.recipeDescription}
           </Text>
-          <Flex justify="center" mb={8}>
-            <Badge
-              px={5}
-              py={2}
-              borderRadius="full"
-              fontSize="lg"
-              bg="#f7d099"
-              color="#2d452c"
-              display="flex"
-              alignItems="center"
-              gap={2}
-            >
-              <FaUtensils /> Serves {recipe.serving}
-            </Badge>
+
+          {/* Meta Info */}
+          <Flex
+            justify="center"
+            gap={8}
+            mb={recipe.notes ? 4 : 8}
+            flexWrap="wrap"
+          >
+            <Text color="#d4a373" fontWeight="medium">
+              Servings: {recipe.serving}
+            </Text>
           </Flex>
 
           {/* Notes */}
           {recipe.notes && (
             <Box
-              bg="#fae0c3"
-              p={5}
-              borderRadius="xl"
               mb={8}
-              boxShadow="md"
-              color="#2d452c"
+              p={4}
+              borderRadius="md"
+              bg="#faedcd"
+              border="1px solid #e9edc9"
             >
-              <Text fontWeight="bold" mb={2}>
-                Chef’s Notes
-              </Text>
-              <Text fontSize="md">{recipe.notes}</Text>
+              <Heading as="h3" fontSize="lg" mb={2} color="#344e41">
+                Notes
+              </Heading>
+              <Text color="gray.800">{recipe.notes}</Text>
             </Box>
           )}
 
-          {/* Ingredients + Steps Grid */}
+          <Divider borderColor="#e9edc9" mb={8} />
+
+          {/* Ingredients + Instructions */}
           <Grid
             templateColumns={{ base: "1fr", md: "1fr 2fr" }}
             gap={10}
             alignItems="start"
           >
             {/* Ingredients */}
-            <GridItem>
-              <Heading as="h2" fontSize="2xl" mb={4} color="#f7d099">
-                <Flex align="center" gap={2}>
-                  <FaClipboardList />
-                  Ingredients
-                </Flex>
+            <GridItem
+              bg="#ccd5ae"
+              borderRadius="md"
+              p={6}
+              border="1px solid #e9edc9"
+            >
+              <Heading as="h2" fontSize="2xl" mb={4} color="#344e41">
+                Ingredients
               </Heading>
-
-              <VStack
-                align="start"
-                spacing={3}
-                bg="whiteAlpha.100"
-                p={6}
-                borderRadius="xl"
-              >
+              <VStack align="start" spacing={3}>
                 {recipe.ingredients.length > 0 ? (
                   recipe.ingredients.map((ing) => (
-                    <motion.div
-                      key={ing.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ width: "100%" }}
-                    >
-                      <Text fontSize="md" color="whiteAlpha.900">
-                        • {ing.quantity ? `${ing.quantity} ` : ""}
-                        {ing.unit ? `${ing.unit} ` : ""}
-                        {ing.ingredient}
-                      </Text>
-                    </motion.div>
+                    <Text key={ing.id} color="gray.800">
+                      • {ing.quantity ? `${ing.quantity} ` : ""}
+                      {ing.unit ? `${ing.unit} ` : ""}
+                      {ing.ingredient}
+                    </Text>
                   ))
                 ) : (
-                  <Text color="whiteAlpha.700">No ingredients listed.</Text>
+                  <Text color="gray.500">No ingredients listed.</Text>
                 )}
               </VStack>
             </GridItem>
 
-            {/* Steps */}
-            <GridItem>
-              <Heading as="h2" fontSize="2xl" mb={4} color="#f7d099">
-                <Flex align="center" gap={2}>
-                  <FaCheck />
-                  Steps
-                </Flex>
+            {/* Instructions */}
+            <GridItem
+              bg="#faedcd"
+              borderRadius="md"
+              p={6}
+              border="1px solid #e9edc9"
+            >
+              <Heading as="h2" fontSize="2xl" mb={4} color="#344e41">
+                Instructions
               </Heading>
               <VStack align="start" spacing={5}>
                 {recipe.steps.length > 0 ? (
                   recipe.steps.map((step) => (
-                    <motion.div
-                      key={step.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
-                      style={{ width: "100%" }}
-                    >
-                      <Box
-                        bg="whiteAlpha.100"
-                        p={5}
-                        borderRadius="lg"
-                        w="100%"
-                        boxShadow="sm"
-                        borderLeft="4px solid #f7d099"
-                      >
-                        <Text
-                          fontWeight="bold"
-                          color="yellow.200"
-                          mb={2}
-                          fontSize="lg"
-                        >
-                          Step {step.stepNumber}
-                        </Text>
-                        <Text>{step.description}</Text>
-                      </Box>
-                    </motion.div>
+                    <Box key={step.id}>
+                      <Text fontWeight="bold" mb={1}>
+                        Step {step.stepNumber}
+                      </Text>
+                      <Text color="gray.800">{step.description}</Text>
+                    </Box>
                   ))
                 ) : (
-                  <Text color="whiteAlpha.700">No steps listed.</Text>
+                  <Text color="gray.500">No steps listed.</Text>
                 )}
               </VStack>
             </GridItem>
           </Grid>
 
-          <Divider borderColor="whiteAlpha.400" my={10} />
+          <Divider borderColor="#e9edc9" my={10} />
 
           {/* Edit Button */}
           <Flex justify="center">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                size="lg"
-                bgGradient="linear(to-r, green.400, yellow.400)"
-                color="white"
-                borderRadius="xl"
-                _hover={{
-                  bgGradient: "linear(to-r, green.300, yellow.300)",
-                }}
-                onClick={() => router.push(`/custom-recipes/edit/${recipe.id}`)}
-              >
-                ✏️ Edit Recipe
-              </Button>
-            </motion.div>
+            <Button
+              size="lg"
+              bg="#d4a373"
+              color="white"
+              _hover={{ bg: "#ccd5ae", color: "black" }}
+              onClick={() => router.push(`/custom-recipes/edit/${recipe.id}`)}
+            >
+              ✏️ Edit Recipe
+            </Button>
           </Flex>
-        </MotionBox>
+        </Box>
       </Flex>
     </Box>
   );

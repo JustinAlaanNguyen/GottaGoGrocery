@@ -220,7 +220,7 @@ export default function CreateCustomRecipePage() {
     });
 
     toast({ status: "success", title: "Recipe created!" });
-    router.push("/home");
+    router.push("/recipes/saved-recipes");
   };
 
   return (
