@@ -266,3 +266,24 @@ exports.deleteCustomRecipe = async (req, res) => {
     conn.release();
   }
 };
+
+
+// Get grocery list (ingredients only) for a recipe
+exports.getGroceryList = async (req, res) => {
+  const recipeId = req.params.id;
+  try {
+    const [ingredients] = await db.query(
+      "SELECT id, ingredient, quantity, unit FROM customrecipeingredient WHERE custRecipId = ?",
+      [recipeId]
+    );
+
+    if (ingredients.length === 0) {
+      return res.status(404).json({ message: "No ingredients found" });
+    }
+
+    res.json({ recipeId, ingredients });
+  } catch (err) {
+    console.error("❌ Error fetching grocery list:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};

@@ -209,8 +209,8 @@ export default function CustomRecipeDetails() {
 
           <Divider borderColor="#e9edc9" my={10} />
 
-          {/* Edit Button */}
-          <Flex justify="center">
+          {/* Edit + Send Buttons */}
+          <Flex justify="center" gap={4}>
             <Button
               size="lg"
               bg="#d4a373"
@@ -219,6 +219,18 @@ export default function CustomRecipeDetails() {
               onClick={() => router.push(`/custom-recipes/edit/${recipe.id}`)}
             >
               ✏️ Edit Recipe
+            </Button>
+
+            <Button
+              size="lg"
+              bg="#344e41"
+              color="white"
+              _hover={{ bg: "#ccd5ae", color: "black" }}
+              onClick={() =>
+                router.push(`/custom-recipes/${recipe.id}/grocery-list`)
+              }
+            >
+              🛒 Send a grocery list
             </Button>
           </Flex>
         </Box>

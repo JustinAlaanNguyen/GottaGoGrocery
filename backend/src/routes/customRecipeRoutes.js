@@ -6,6 +6,7 @@ const {
   getCustomRecipeById,
   updateCustomRecipe,
   deleteCustomRecipe,
+  getGroceryList,
 } = require("../controllers/customRecipeController");
 
 router.post("/", createCustomRecipe); // Create a new recipe
@@ -13,6 +14,7 @@ router.get("/recent/:userId", getRecentCustomRecipes); // Get recent recipes for
 router.get("/:id", getCustomRecipeById);
 router.put("/:id", updateCustomRecipe);
 router.delete("/:id", deleteCustomRecipe);
+router.get("/:id/grocery-list", getGroceryList);
 
 
 module.exports = router;

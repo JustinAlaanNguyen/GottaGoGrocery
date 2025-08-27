@@ -62,11 +62,15 @@ export default function UserHome() {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
       router.push("/account/signin");
-      return;
+      return; // <-- prevents fetchData from running
     }
 
     const user = JSON.parse(storedUser);
     const userId = user.id;
+    if (!userId) {
+      router.push("/account/signin");
+      return; // <-- double safety
+    }
 
     const fetchData = async () => {
       try {
