@@ -2,10 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/custom-recipes/[id]/grocery-list": "pages/custom-recipes/[id]/grocery-list.js",
-  "/home": "pages/home.js",
+  "/account/profile": "pages/account/profile.js",
   "/custom-recipes": "pages/custom-recipes.js",
-  "/": "pages/index.js",
-  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
-  "/account/signup": "pages/account/signup.js"
+  "/home": "pages/home.js",
+  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js"
 }

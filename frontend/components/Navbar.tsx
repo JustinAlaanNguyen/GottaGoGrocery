@@ -15,6 +15,7 @@ import {
   DrawerCloseButton,
   DrawerBody,
   VStack,
+  Circle,
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { motion } from "framer-motion";
@@ -22,7 +23,6 @@ import NextLink from "next/link";
 
 const MotionFlex = motion(Flex);
 const MotionButton = motion(Button);
-const MotionBox = motion(Box);
 
 function isLoggedIn() {
   if (typeof window === "undefined") return false;
@@ -48,10 +48,23 @@ const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
     setLoggedIn(isLoggedIn());
+    if (isLoggedIn()) {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          console.log("Parsed user:", parsedUser);
+          setUsername(parsedUser.name || null);
+        } catch {
+          setUsername(null);
+        }
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -93,7 +106,11 @@ const Navbar: React.FC = () => {
         </ChakraLink>
 
         {/* Desktop Buttons */}
-        <HStack spacing={4} display={{ base: "none", md: "flex" }}>
+        <HStack
+          spacing={4}
+          display={{ base: "none", md: "flex" }}
+          align="center"
+        >
           {links.map((link) => (
             <MotionButton
               key={link.name}
@@ -112,9 +129,30 @@ const Navbar: React.FC = () => {
           ))}
 
           {loggedIn ? (
-            <Button onClick={handleLogout} colorScheme="red" variant="outline">
-              Sign Out
-            </Button>
+            <>
+              <Button
+                onClick={handleLogout}
+                colorScheme="red"
+                variant="outline"
+              >
+                Sign Out
+              </Button>
+
+              {username && (
+                <Circle
+                  as={NextLink}
+                  href="/account/profile"
+                  size="45px"
+                  bg="#3c5b3a"
+                  color="white"
+                  fontWeight="bold"
+                  fontSize="lg"
+                  _hover={{ bg: "#2d452c" }}
+                >
+                  {username.charAt(0).toUpperCase()}
+                </Circle>
+              )}
+            </>
           ) : (
             <MotionButton
               as={NextLink}
@@ -165,15 +203,32 @@ const Navbar: React.FC = () => {
               ))}
 
               {loggedIn ? (
-                <Button
-                  onClick={() => {
-                    handleLogout();
-                    onClose();
-                  }}
-                  colorScheme="red"
-                >
-                  Sign Out
-                </Button>
+                <>
+                  <Button
+                    onClick={() => {
+                      handleLogout();
+                      onClose();
+                    }}
+                    colorScheme="red"
+                  >
+                    Sign Out
+                  </Button>
+
+                  {username && (
+                    <Circle
+                      as={NextLink}
+                      href="/account/profile"
+                      size="45px"
+                      bg="#3c5b3a"
+                      color="white"
+                      fontWeight="bold"
+                      fontSize="lg"
+                      _hover={{ bg: "#2d452c" }}
+                    >
+                      {username.charAt(0).toUpperCase()}
+                    </Circle>
+                  )}
+                </>
               ) : (
                 <Button
                   as={NextLink}

@@ -76,7 +76,7 @@ export default function FeaturesPage() {
     <Box
       bg="#ccd5ae"
       minH="100vh"
-      py={12}
+      py={18}
       px={6}
       overflow="hidden"
       position="relative"

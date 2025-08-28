@@ -101,3 +101,51 @@ exports.getUserRecipes = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+// Get full user profile
+exports.getUserProfile = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const [[user]] = await db.query(
+      "SELECT id, username, email, phone, created_at FROM user WHERE id = ?",
+      [userId]
+    );
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
+  } catch (err) {
+    console.error("Error fetching profile:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Update user profile
+exports.updateUserProfile = async (req, res) => {
+  const userId = req.params.id;
+  const { username, email, phone, password } = req.body;
+
+  try {
+    if (password) {
+      // hash the new password
+      const bcrypt = require("bcryptjs");
+      const passwordHash = await bcrypt.hash(password, 10);
+      await db.query("UPDATE user SET passwordHash = ? WHERE id = ?", [
+        passwordHash,
+        userId,
+      ]);
+    }
+
+    if (username || email || phone) {
+      await db.query(
+        "UPDATE user SET username = COALESCE(?, username), email = COALESCE(?, email), phone = COALESCE(?, phone) WHERE id = ?",
+        [username, email, phone, userId]
+      );
+    }
+
+    res.json({ message: "Profile updated successfully" });
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
