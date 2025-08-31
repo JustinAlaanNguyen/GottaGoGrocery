@@ -123,7 +123,7 @@ export default function UserHome() {
         w="250px"
         h="250px"
         borderRadius="full"
-        bg="#d4a373"
+        bg="#fcd4a1"
         top="10%"
         left="80%"
         zIndex={0}

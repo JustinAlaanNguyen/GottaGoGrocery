@@ -93,6 +93,52 @@ export default function GroceryListPage() {
     }
   }
 
+  async function handleSmsClick() {
+    if (neededIngredients.length === 0) {
+      toast({ status: "info", title: "No items to text" });
+      return;
+    }
+
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      toast({ status: "warning", title: "Please sign in to text the list." });
+      return;
+    }
+    const user = JSON.parse(storedUser);
+
+    try {
+      const payload = {
+        userId: user.id,
+        recipeId: id,
+        recipeTitle,
+        items: neededIngredients.map((i) => ({
+          ingredient: i.ingredient,
+          quantity: i.quantity || "",
+          unit: i.unit || "",
+          note: i.note || "",
+          isCustom: !!i.isCustom,
+        })),
+      };
+
+      const res = await axios.post(
+        "http://localhost:5000/api/grocery-list/sms",
+        payload
+      );
+
+      if (res.data?.ok) {
+        toast({ status: "success", title: "Text message sent!" });
+      } else {
+        toast({
+          status: "error",
+          title: res.data?.error || "Failed to send text",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ status: "error", title: "Failed to send text. Try again." });
+    }
+  }
+
   useEffect(() => {
     if (!id) return;
     const fetchList = async () => {
@@ -374,6 +420,23 @@ export default function GroceryListPage() {
                 onClick={handleEmailClick}
               >
                 📧 Email me this grocery list
+              </Button>
+
+              {/* Phone button */}
+              <Button
+                size="md"
+                w="100%"
+                bgGradient="linear(to-r, #344e41, #588157)"
+                color="white"
+                transition="all 0.3s"
+                _hover={{
+                  transform: "scale(1.03)",
+                  bgGradient: "linear(to-r, #ccd5ae, #a3b18a)",
+                  color: "black",
+                }}
+                onClick={handleSmsClick}
+              >
+                📱 Text me this grocery list
               </Button>
             </Box>
           </Flex>

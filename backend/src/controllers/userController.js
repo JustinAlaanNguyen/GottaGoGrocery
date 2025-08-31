@@ -4,6 +4,7 @@ const db = require("../config/db");
 
 exports.getUserHome = async (req, res) => {
   const userId = req.params.id;
+  console.log("getUserHome hit with id:", userId);
 
   try {
     // Get username
@@ -101,7 +102,6 @@ exports.getUserRecipes = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // Get full user profile
 exports.getUserProfile = async (req, res) => {

@@ -125,7 +125,15 @@ export default function SearchRecipe() {
   };
 
   return (
-    <Box minH="100vh" p={6} bg="#ccd5ae" position="relative" overflow="hidden">
+    <Box
+      minH="100vh"
+      pt={0} // 🔹 no padding on top
+      px={6} // 🔹 keep side padding
+      pb={6} // 🔹 keep bottom padding
+      bg="#ccd5ae"
+      position="relative"
+      overflow="hidden"
+    >
       {/* Floating background icons */}
       <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
         {cutlery}

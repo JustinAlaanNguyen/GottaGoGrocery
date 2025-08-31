@@ -76,8 +76,9 @@ export default function FeaturesPage() {
     <Box
       bg="#ccd5ae"
       minH="100vh"
-      py={18}
-      px={6}
+      pt={0} // 🔹 no padding on top
+      px={6} // 🔹 keep side padding
+      pb={6} // 🔹 keep bottom padding
       overflow="hidden"
       position="relative"
     >
@@ -122,7 +123,9 @@ export default function FeaturesPage() {
           >
             <Box
               bg="#d4a373"
-              p={3}
+              paddingTop={3}
+              paddingBottom={1}
+              px={3}
               borderRadius="full"
               boxShadow="0 0 15px #faedcd"
             >

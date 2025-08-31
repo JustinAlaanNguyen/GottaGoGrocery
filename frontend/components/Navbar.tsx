@@ -107,8 +107,8 @@ const Navbar: React.FC = () => {
 
         {/* Desktop Buttons */}
         <HStack
-          spacing={4}
-          display={{ base: "none", md: "flex" }}
+          spacing={{ base: 2, md: 3, lg: 4 }}
+          display={{ base: "none", lg: "flex" }} // change to lg so laptop width uses hamburger
           align="center"
         >
           {links.map((link) => (
@@ -116,13 +116,16 @@ const Navbar: React.FC = () => {
               key={link.name}
               as={NextLink}
               href={link.href}
-              leftIcon={<span style={{ fontSize: "1.1rem" }}>{link.icon}</span>}
+              leftIcon={<span style={{ fontSize: "0.8rem" }}>{link.icon}</span>}
               bg="white"
               border="1px solid #cead7fff"
               color="#2d452c"
               _hover={{ bg: "#faeddb", textDecoration: "none" }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              fontSize="xs" // 👈 made smaller
+              px={{ base: 2, md: 3 }}
+              py={{ base: 1, md: 2 }}
             >
               {link.name}
             </MotionButton>
@@ -134,6 +137,8 @@ const Navbar: React.FC = () => {
                 onClick={handleLogout}
                 colorScheme="red"
                 variant="outline"
+                fontSize="sm" // 👈 smaller
+                px={{ base: 2, md: 3 }}
               >
                 Sign Out
               </Button>
@@ -142,11 +147,11 @@ const Navbar: React.FC = () => {
                 <Circle
                   as={NextLink}
                   href="/account/profile"
-                  size="45px"
+                  size={{ base: "35px", md: "40px", lg: "45px" }}
                   bg="#3c5b3a"
                   color="white"
                   fontWeight="bold"
-                  fontSize="lg"
+                  fontSize={{ base: "sm", md: "md", lg: "lg" }}
                   _hover={{ bg: "#2d452c" }}
                 >
                   {username.charAt(0).toUpperCase()}
@@ -159,11 +164,12 @@ const Navbar: React.FC = () => {
               href="/account/signin"
               bg="#3c5b3a"
               color="white"
-              px={6}
-              py={4}
+              px={{ base: 3, md: 4 }}
+              py={{ base: 2, md: 3 }}
               borderRadius="full"
               _hover={{ bg: "#2d452c" }}
               whileHover={{ scale: 1.05 }}
+              fontSize="sm" // 👈 smaller
             >
               Sign In
             </MotionButton>
@@ -196,7 +202,7 @@ const Navbar: React.FC = () => {
                   justifyContent="flex-start"
                   onClick={onClose}
                   variant="ghost"
-                  fontSize="xl"
+                  fontSize="sm" // 👈 was xl, now smaller
                 >
                   {link.name}
                 </Button>
