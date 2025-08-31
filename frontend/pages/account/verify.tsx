@@ -31,3 +31,7 @@ export default function Verify() {
     </Box>
   );
 }
+
+// ALTER TABLE user ADD COLUMN isVerified BOOLEAN DEFAULT false;
+// ALTER TABLE user ADD COLUMN verificationToken VARCHAR(255);
+// ALTER TABLE user ADD COLUMN verificationExpires DATETIME;
