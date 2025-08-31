@@ -126,6 +126,7 @@ const Navbar: React.FC = () => {
               fontSize="xs" // 👈 made smaller
               px={{ base: 2, md: 3 }}
               py={{ base: 1, md: 2 }}
+              fontWeight={900} // 👈 made bolder
             >
               {link.name}
             </MotionButton>
@@ -139,6 +140,7 @@ const Navbar: React.FC = () => {
                 variant="outline"
                 fontSize="sm" // 👈 smaller
                 px={{ base: 2, md: 3 }}
+                fontWeight="700"
               >
                 Sign Out
               </Button>

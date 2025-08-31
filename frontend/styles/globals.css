@@ -1,4 +1,4 @@
-/* 1) Register the font */
+/* 1) Register Kugile (for headers) */
 @font-face {
   font-family: "Kugile";
   src: url("/fonts/Kugile_Demo.ttf") format("truetype");
@@ -7,13 +7,27 @@
   font-display: swap;
 }
 
-/* 2) Apply to the whole app */
-html, body, #__next {
-  height: 100%;
-  font-family: "Kugile", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+/* 2) Register Italiana (for body text) */
+@font-face {
+  font-family: "Italiana";
+  src: url("/fonts/Italiana-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* Optional: make sure everything inherits cleanly */
+/* 3) Default: Italiana for everything */
+html, body, #__next {
+  height: 100%;
+  font-family: "Italiana", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* 4) Override: Kugile for headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Kugile", serif;
+}
+
+/* Optional: ensure everything else inherits correctly */
 * {
   font-family: inherit;
 }

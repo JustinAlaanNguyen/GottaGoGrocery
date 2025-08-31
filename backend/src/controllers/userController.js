@@ -1,6 +1,11 @@
 // backend/controllers/userController.js
 
 const db = require("../config/db");
+const twilio = require("twilio");
+
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+
 
 exports.getUserHome = async (req, res) => {
   const userId = req.params.id;
@@ -147,5 +152,48 @@ exports.updateUserProfile = async (req, res) => {
   } catch (err) {
     console.error("Error updating profile:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+// Send verification code
+exports.sendPhoneVerification = async (req, res) => {
+  let { phone } = req.body;
+
+  // Auto format if US/Canada 10 digits
+  if (/^\d{10}$/.test(phone)) {
+    phone = `+1${phone}`;
+  }
+
+  try {
+    const verification = await client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verifications.create({ to: phone, channel: "sms" });
+
+    res.json({ message: "Verification code sent", status: verification.status });
+  } catch (err) {
+    console.error("Error sending phone verification:", err);
+    res.status(500).json({ message: "Failed to send verification code" });
+  }
+};
+
+
+// Confirm verification code
+exports.confirmPhoneVerification = async (req, res) => {
+  const { phone, code, userId } = req.body;
+  try {
+    const check = await client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verificationChecks.create({ to: phone, code });
+
+    if (check.status === "approved") {
+      await db.query("UPDATE user SET phone = ? WHERE id = ?", [phone, userId]);
+      res.json({ message: "Phone verified & saved successfully" });
+    } else {
+      res.status(400).json({ message: "Invalid verification code" });
+    }
+  } catch (err) {
+    console.error("Error confirming phone verification:", err);
+    res.status(500).json({ message: "Failed to verify phone" });
   }
 };

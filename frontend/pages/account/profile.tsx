@@ -31,6 +31,10 @@ const floatingEmojiAnimation = {
 const profileEmojis = ["👤", "📱", "✉️", "💻", "🔒"];
 
 export default function ProfilePage() {
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [isPhoneVerified, setIsPhoneVerified] = useState(true);
+
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [editing, setEditing] = useState(false);
@@ -282,17 +286,101 @@ export default function ProfilePage() {
                   <FormControl isInvalid={!!errors.phone}>
                     <FormLabel>Phone</FormLabel>
                     <Input
-                      placeholder="+1234567890"
+                      placeholder="+12263431643" // <-- show correct example
                       bg="#faedcd"
                       value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
+                      onChange={(e) => {
+                        let newPhone = e.target.value.trim();
+
+                        // Auto prepend +1 if missing and looks like a 10-digit Canadian/US number
+                        if (/^\d{10}$/.test(newPhone)) {
+                          newPhone = `+1${newPhone}`;
+                        }
+
+                        setFormData({ ...formData, phone: newPhone });
+
+                        if (newPhone !== profile.phone) {
+                          setIsPhoneVerified(false);
+                        } else {
+                          setIsPhoneVerified(true);
+                        }
+                      }}
                     />
                     {errors.phone && (
                       <FormErrorMessage>{errors.phone}</FormErrorMessage>
                     )}
+
+                    <Button
+                      mt={2}
+                      size="sm"
+                      bg="#d4a373"
+                      color="white"
+                      _hover={{ bg: "#344e41" }}
+                      onClick={async () => {
+                        try {
+                          await axios.post(
+                            "http://localhost:5000/api/user/phone/send",
+                            {
+                              phone: formData.phone,
+                            }
+                          );
+                          setVerificationSent(true);
+                          toast({
+                            title: "Verification code sent!",
+                            status: "info",
+                          });
+                        } catch {
+                          toast({
+                            title: "Failed to send verification code",
+                            status: "error",
+                          });
+                        }
+                      }}
+                    >
+                      Send Verification Code
+                    </Button>
                   </FormControl>
+
+                  {verificationSent && (
+                    <FormControl mt={4}>
+                      <FormLabel>Enter Verification Code</FormLabel>
+                      <Input
+                        placeholder="123456"
+                        bg="#faedcd"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                      />
+                      <Button
+                        mt={2}
+                        size="sm"
+                        bg="#344e41"
+                        color="white"
+                        _hover={{ bg: "#ccd5ae", color: "black" }}
+                        onClick={async () => {
+                          try {
+                            await axios.post(
+                              "http://localhost:5000/api/user/phone/confirm",
+                              {
+                                phone: formData.phone,
+                                code: verificationCode,
+                                userId: profile.id,
+                              }
+                            );
+                            toast({
+                              title: "Phone verified!",
+                              status: "success",
+                            });
+                            setIsPhoneVerified(true);
+                            setVerificationSent(false);
+                          } catch {
+                            toast({ title: "Invalid code", status: "error" });
+                          }
+                        }}
+                      >
+                        Verify Code
+                      </Button>
+                    </FormControl>
+                  )}
 
                   <FormControl isInvalid={!!errors.password}>
                     <FormLabel>New Password</FormLabel>
@@ -317,9 +405,11 @@ export default function ProfilePage() {
                     color="white"
                     _hover={{ bg: "#ccd5ae", color: "black" }}
                     onClick={handleSave}
+                    isDisabled={!isPhoneVerified} // <-- disable if not verified
                   >
                     Save Changes
                   </Button>
+
                   <Button
                     w="full"
                     variant="outline"

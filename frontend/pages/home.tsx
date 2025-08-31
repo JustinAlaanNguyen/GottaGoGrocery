@@ -237,7 +237,7 @@ export default function UserHome() {
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={10}>
           <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
             <CardBody textAlign="center">
-              <Text fontSize="xl" color="#344e41">
+              <Text fontSize="xl" color="#344e41" fontWeight="600">
                 {customCount > 0
                   ? `You’ve created ${customCount} custom recipe${
                       customCount > 1 ? "s" : ""
@@ -247,7 +247,13 @@ export default function UserHome() {
             </CardBody>
           </MotionCard>
 
-          <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
+          <MotionCard
+            {...fadeInUp}
+            bg="white"
+            shadow="md"
+            borderRadius="xl"
+            fontWeight="600"
+          >
             <CardBody textAlign="center">
               <Text fontSize="xl" color="#344e41">
                 {savedCount > 0
@@ -259,7 +265,13 @@ export default function UserHome() {
             </CardBody>
           </MotionCard>
 
-          <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
+          <MotionCard
+            {...fadeInUp}
+            bg="white"
+            shadow="md"
+            borderRadius="xl"
+            fontWeight="600"
+          >
             <CardBody textAlign="center">
               <Text fontSize="xl" color="#344e41">
                 {customCount + savedCount > 0
@@ -295,15 +307,17 @@ export default function UserHome() {
                 borderRadius="lg"
               >
                 <CardBody>
-                  <Text fontWeight="bold" color="#344e41">
+                  <Text fontWeight="600" color="#344e41">
                     {item.title || "Saved recipe"}
                   </Text>
-                  {item.recipeLink && (
-                    <Text color="blue.500" wordBreak="break-word">
-                      {item.recipeLink}
-                    </Text>
-                  )}
-                  <Text fontSize="sm" color="gray.500">
+                  <Text
+                    color="blue.500"
+                    wordBreak="break-word"
+                    fontWeight="500"
+                  >
+                    {item.recipeLink}
+                  </Text>
+                  <Text fontSize="sm" color="gray.500" fontWeight="500">
                     {item.activityDate
                       ? new Date(item.activityDate).toLocaleString()
                       : "No date available"}
@@ -314,7 +328,7 @@ export default function UserHome() {
           </VStack>
         ) : (
           <MotionBox {...fadeInUp}>
-            <Text fontSize="lg" color="#344e41">
+            <Text fontSize="lg" color="#344e41" fontWeight="700">
               You have no recent activity. Start by saving or creating a recipe!
             </Text>
           </MotionBox>

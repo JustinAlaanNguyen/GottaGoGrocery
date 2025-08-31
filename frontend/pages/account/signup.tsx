@@ -129,8 +129,14 @@ const Signup = (): React.ReactElement => {
         username: trimmedUsername,
         password,
       });
+
       setSuccess(true);
-      setMessage(res.data.message || "Signup successful!");
+      // Instead of "Signup successful!"
+      setMessage(
+        res.data.message ||
+          "Signup successful! Please check your email to verify your account."
+      );
+
       setEmail("");
       setUsername("");
       setPassword("");
