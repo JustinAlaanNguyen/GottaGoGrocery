@@ -63,7 +63,7 @@ export default function SearchRecipe() {
             ease: "easeInOut",
           }}
         >
-          <Text fontSize="lg">{emoji}</Text>
+          <Text fontSize="26px">{emoji}</Text>
         </MotionBox>
       );
     });

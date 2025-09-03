@@ -17,6 +17,8 @@ import { useRouter } from "next/navigation";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import { FaExclamationCircle } from "react-icons/fa";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -49,13 +51,26 @@ type RecentRecipe = {
   created_at?: string;
 };
 
+type Tasks = {
+  addPhone: boolean;
+  customRecipe: boolean;
+  savedRecipe: boolean;
+};
+
 export default function UserHome() {
   const [username, setUsername] = useState<string>("");
   const [savedCount, setSavedCount] = useState<number>(0);
   const [customCount, setCustomCount] = useState<number>(0);
   const [recent, setRecent] = useState<RecentRecipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tasks, setTasks] = useState<Tasks>({
+    addPhone: false,
+    customRecipe: false,
+    savedRecipe: false,
+  });
+  const [showTasks, setShowTasks] = useState(true); // 👈 control collapse
 
+  const allCompleted = Object.values(tasks).every(Boolean);
   const router = useRouter();
 
   useEffect(() => {
@@ -83,6 +98,13 @@ export default function UserHome() {
         setSavedCount(data.savedCount || 0);
         setCustomCount(data.customCount || 0);
         setRecent(data.recent || []);
+        setTasks(
+          data.tasks || {
+            addPhone: false,
+            customRecipe: false,
+            savedRecipe: false,
+          }
+        );
       } catch (err) {
         console.error("Failed to fetch home data:", err);
       } finally {
@@ -143,84 +165,113 @@ export default function UserHome() {
       >
         {/* Greeting */}
         <MotionBox {...fadeInUp}>
-          <Heading as="h1" fontSize="4xl" mb={2} color="#344e41">
-            Hi {username}! 👋 Welcome back!
+          <Heading as="h1" fontSize="6xl" mb={2} color="#344e41">
+            Hi {username}! 👋 Lets get cooking!
           </Heading>
         </MotionBox>
-
-        {/* Quick Actions */}
-        <MotionBox
-          initial={{ x: -50, opacity: 0 }}
-          whileInView={{ x: 0, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
-        >
-          <Heading as="h2" fontSize="2xl" mb={4} mt={8} color="#344e41">
-            Quick Actions
-          </Heading>
-        </MotionBox>
-
-        <SimpleGrid
-          columns={{ base: 1, md: 2, lg: 4 }}
-          spacing={6}
-          mb={10}
-          mt={4}
-        >
-          {[
-            { label: "Create a custom recipe", route: "/custom-recipes" },
-            { label: "View saved recipes", route: "/saved-recipes" },
-            { label: "Search grocery items", route: "/search-recipe" },
-            { label: "Manage account settings", route: "/account/settings" },
-          ].map((action, i) => (
-            <motion.div
-              key={i}
-              variants={bounceButton}
-              whileHover={{ scale: 1.05 }}
-              style={{ width: "100%", position: "relative" }}
+        {/* Getting Started Tasks */}
+        {!allCompleted && (
+          <>
+            <MotionBox
+              initial={{ x: -50, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
             >
-              <Button
-                size="lg"
-                bg="#d4a373"
-                color="white"
-                borderRadius="xl"
-                _hover={{ bg: "#ccd5ae", color: "black" }}
-                w="100%"
-                onClick={() => router.push(action.route)}
-              >
-                {action.label}
-              </Button>
+              <Flex align="center" mb={4} mt={8} padding={2} gap={4}>
+                <Heading as="h2" fontSize="4xl" color="#344e41">
+                  Getting Started
+                </Heading>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowTasks(!showTasks)}
+                  leftIcon={showTasks ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                >
+                  {showTasks ? "Hide" : "Show"}
+                </Button>
+              </Flex>
+            </MotionBox>
 
-              {i === 0 && (
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  style={{ position: "absolute", top: 15, right: 13 }}
-                ></motion.div>
-              )}
-              {i === 1 && (
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  style={{ position: "absolute", top: 15, right: 25 }}
-                ></motion.div>
-              )}
-              {i === 2 && (
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  style={{ position: "absolute", top: 15, right: 15 }}
-                ></motion.div>
-              )}
-              {i === 3 && (
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  style={{ position: "absolute", top: 15, right: 5 }}
-                ></motion.div>
-              )}
-            </motion.div>
-          ))}
-        </SimpleGrid>
+            {showTasks && (
+              <VStack align="stretch" spacing={4}>
+                {[
+                  {
+                    id: "addPhone",
+                    label: "Add your phone number to your account",
+                    route: "/account/profile",
+                  },
+                  {
+                    id: "customRecipe",
+                    label: "Create a custom recipe",
+                    route: "/custom-recipes",
+                  },
+                  {
+                    id: "savedRecipe",
+                    label: "Search up and save a new recipe",
+                    route: "/search-recipe",
+                  },
+                  {
+                    id: "sendEmail",
+                    label: "Send a grocery list to your email",
+                    route: "recipes/saved-recipes",
+                  },
+                  {
+                    id: "sendPhone",
+                    label: "Send a grocery list to your phone number",
+                    route: "recipes/saved-recipes",
+                  },
+                ].map((task) => {
+                  const completed = tasks[task.id as keyof Tasks];
+                  return (
+                    <MotionCard
+                      key={task.id}
+                      {...fadeInUp}
+                      bg={completed ? "green.50" : "white"}
+                      shadow="sm"
+                      borderRadius="lg"
+                      position="relative"
+                    >
+                      <CardBody>
+                        <Flex justify="space-between" align="center">
+                          <Text
+                            fontWeight="600"
+                            color={completed ? "gray.500" : "#344e41"}
+                            textDecoration={completed ? "line-through" : "none"}
+                          >
+                            {task.label}
+                          </Text>
+                          <Flex align="center" gap={2}>
+                            {!completed && (
+                              <motion.div
+                                animate={{ y: [0, -4, 0] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                              >
+                                <FaExclamationCircle
+                                  color="#d9534f"
+                                  size={20}
+                                />
+                              </motion.div>
+                            )}
+                            <Button
+                              size="sm"
+                              colorScheme={completed ? "green" : "blue"}
+                              onClick={() =>
+                                !completed && router.push(task.route)
+                              }
+                            >
+                              {completed ? "Done ✅" : "Start"}
+                            </Button>
+                          </Flex>
+                        </Flex>
+                      </CardBody>
+                    </MotionCard>
+                  );
+                })}
+              </VStack>
+            )}
+          </>
+        )}
 
         {/* Stats */}
         <MotionBox
@@ -229,7 +280,7 @@ export default function UserHome() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
         >
-          <Heading as="h2" fontSize="2xl" mb={4} mt={8} color="#344e41">
+          <Heading as="h2" fontSize="4xl" mb={4} mt={8} color="#344e41">
             Your Stats
           </Heading>
         </MotionBox>
@@ -291,7 +342,7 @@ export default function UserHome() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
         >
-          <Heading as="h2" fontSize="2xl" mb={4} mt={8} color="#344e41">
+          <Heading as="h2" fontSize="4xl" mb={4} mt={8} color="#344e41">
             Recent Activity
           </Heading>
         </MotionBox>

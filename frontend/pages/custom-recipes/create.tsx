@@ -26,6 +26,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../../components/Navbar";
 import axios from "axios";
 import UnitAutocompleteInput from "../../components/UnitAutocompleteInput";
+import { containsProfanity } from "../../utils/profanityFilter";
+import QuantityUnitInput from "../../components/QuantityUnitInput";
 
 const floatingEmojiAnimation = {
   y: [0, 15, 0, 15, 0],
@@ -181,6 +183,27 @@ export default function CreateCustomRecipePage() {
         title: "Title & description required",
       });
     }
+
+    // 🚨 Profanity check for all fields
+    const fieldsToCheck = [
+      title,
+      recipeDescription,
+      serving,
+      notes,
+      ...steps,
+      ...ingredients.map((i) => i.ingredient),
+      ...ingredients.map((i) => i.quantity),
+      ...ingredients.map((i) => i.unit),
+    ];
+
+    if (fieldsToCheck.some((field) => containsProfanity(field))) {
+      return toast({
+        status: "error",
+        title: "Inappropriate content detected",
+        description: "Please remove profanity before saving.",
+      });
+    }
+
     const servingsNum = Number(serving);
     if (!Number.isInteger(servingsNum) || servingsNum <= 0) {
       return toast({
@@ -274,13 +297,25 @@ export default function CreateCustomRecipePage() {
                 <MotionBox
                   key={i}
                   as={SimpleGrid}
-                  columns={4}
-                  spacing={2}
+                  columns={3}
+                  spacing={3}
                   alignItems="center"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                 >
+                  {/* Quantity + Unit */}
+                  <QuantityUnitInput
+                    value={{ quantity: ing.quantity, unit: ing.unit }}
+                    onChange={(val) => {
+                      const updated = [...ingredients];
+                      updated[i].quantity = val.quantity;
+                      updated[i].unit = val.unit;
+                      setIngredients(updated);
+                    }}
+                  />
+
+                  {/* Ingredient name (with Spoonacular autocomplete) */}
                   <IngredientAutocompleteInput
                     value={ing.ingredient}
                     onChange={(val) => {
@@ -290,33 +325,14 @@ export default function CreateCustomRecipePage() {
                     }}
                   />
 
-                  <Input
-                    placeholder="Qty"
-                    value={ing.quantity}
-                    bg="#faedcd"
-                    onChange={(e) => {
-                      const updated = [...ingredients];
-                      updated[i].quantity = e.target.value;
-                      setIngredients(updated);
-                    }}
-                  />
-
-                  <UnitAutocompleteInput
-                    value={ing.unit}
-                    onChange={(val) => {
-                      const updated = [...ingredients];
-                      updated[i].unit = val;
-                      setIngredients(updated);
-                    }}
-                  />
-
+                  {/* Delete button */}
                   <IconButton
                     aria-label="Delete"
                     icon={<CloseIcon />}
                     size="sm"
-                    bg="#d4a373"
+                    bg="#a32c2c"
                     color="white"
-                    _hover={{ bg: "#344e41" }}
+                    _hover={{ bg: "#611b1b" }}
                     onClick={() => {
                       setIngredients(ingredients.filter((_, idx) => idx !== i));
                     }}
@@ -324,6 +340,7 @@ export default function CreateCustomRecipePage() {
                 </MotionBox>
               ))}
             </AnimatePresence>
+
             <Button
               size="sm"
               onClick={() =>
@@ -369,9 +386,9 @@ export default function CreateCustomRecipePage() {
                     aria-label="Delete"
                     icon={<CloseIcon />}
                     size="sm"
-                    bg="#d4a373"
+                    bg="#a32c2c"
                     color="white"
-                    _hover={{ bg: "#344e41" }}
+                    _hover={{ bg: "#611b1b" }}
                     onClick={() =>
                       setSteps(steps.filter((_, idx) => idx !== i))
                     }

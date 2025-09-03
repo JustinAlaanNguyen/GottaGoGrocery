@@ -2,8 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/custom-recipes": "pages/custom-recipes.js",
   "/home": "pages/home.js",
-  "/search-recipe": "pages/search-recipe.js",
-  "/features": "pages/features.js"
+  "/account/signin": "pages/account/signin.js",
+  "/account/signup": "pages/account/signup.js"
 }

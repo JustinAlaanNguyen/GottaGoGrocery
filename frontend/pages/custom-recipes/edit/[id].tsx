@@ -24,8 +24,8 @@ import { CloseIcon } from "@chakra-ui/icons";
 import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../../../components/Navbar";
-import UnitAutocompleteInput from "../../../components/UnitAutocompleteInput";
 import axios from "axios";
+import QuantityUnitInput from "../../../components/QuantityUnitInput"; // ✅ use merged field
 
 const floatingEmojiAnimation = {
   y: [0, 15, 0, 15, 0],
@@ -92,7 +92,7 @@ const IngredientAutocompleteInput: React.FC<AutoProps> = ({
           placeholder="Ingredient"
           value={query}
           onChange={handleChange}
-          bg="white"
+          bg="#faedcd"
           borderColor="#cead7f"
           _focus={{ borderColor: "#2d452c", boxShadow: "0 0 0 1px #2d452c" }}
         />
@@ -104,7 +104,7 @@ const IngredientAutocompleteInput: React.FC<AutoProps> = ({
               key={name}
               px={3}
               py={2}
-              _hover={{ bg: "#fbfaf8", color: "#2d452c", cursor: "pointer" }}
+              _hover={{ bg: "#e9edc9", color: "#2d452c", cursor: "pointer" }}
               onClick={() => handleSelect(name)}
             >
               {name}
@@ -308,13 +308,25 @@ export default function EditCustomRecipePage() {
                 <MotionBox
                   key={i}
                   as={SimpleGrid}
-                  columns={4}
-                  spacing={2}
+                  columns={3}
+                  spacing={3}
                   alignItems="center"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                 >
+                  {/* Quantity + Unit merged */}
+                  <QuantityUnitInput
+                    value={{ quantity: ing.quantity, unit: ing.unit }}
+                    onChange={(val) => {
+                      const updated = [...ingredients];
+                      updated[i].quantity = val.quantity;
+                      updated[i].unit = val.unit;
+                      setIngredients(updated);
+                    }}
+                  />
+
+                  {/* Ingredient with autocomplete */}
                   <IngredientAutocompleteInput
                     value={ing.ingredient}
                     onChange={(val) => {
@@ -323,26 +335,8 @@ export default function EditCustomRecipePage() {
                       setIngredients(updated);
                     }}
                   />
-                  <Input
-                    placeholder="Qty"
-                    value={ing.quantity}
-                    onChange={(e) => {
-                      const updated = [...ingredients];
-                      updated[i].quantity = e.target.value;
-                      setIngredients(updated);
-                    }}
-                    bg="#faedcd"
-                    borderColor="#cead7f"
-                    _focus={{ borderColor: "#2d452c" }}
-                  />
-                  <UnitAutocompleteInput
-                    value={ing.unit}
-                    onChange={(val) => {
-                      const updated = [...ingredients];
-                      updated[i].unit = val;
-                      setIngredients(updated);
-                    }}
-                  />
+
+                  {/* Delete button */}
                   <IconButton
                     aria-label="Delete"
                     icon={<CloseIcon />}
@@ -358,8 +352,9 @@ export default function EditCustomRecipePage() {
             <Button
               size="sm"
               onClick={addIngredient}
-              bg="#cead7f"
-              color="black"
+              bg="#d4a373"
+              color="white"
+              _hover={{ bg: "#344e41" }}
             >
               + Add Ingredient
             </Button>
@@ -403,7 +398,13 @@ export default function EditCustomRecipePage() {
                 </MotionBox>
               ))}
             </AnimatePresence>
-            <Button size="sm" onClick={addStep} bg="#cead7f" color="black">
+            <Button
+              size="sm"
+              onClick={addStep}
+              bg="#d4a373"
+              color="white"
+              _hover={{ bg: "#344e41" }}
+            >
               + Add Step
             </Button>
 
@@ -420,7 +421,7 @@ export default function EditCustomRecipePage() {
               bg="#3c5b3a"
               color="white"
               size="lg"
-              _hover={{ bg: "#2d452c" }}
+              _hover={{ bg: "#ccd5ae", color: "black" }}
               onClick={handleUpdate}
             >
               Update Recipe
@@ -455,10 +456,10 @@ export default function EditCustomRecipePage() {
             </Button>
 
             <Button
-              bg="#cead7f"
-              color="black"
+              bg="#d4a373"
+              color="white"
               size="lg"
-              _hover={{ bg: "#2d452c", color: "white" }}
+              _hover={{ bg: "#ccd5ae", color: "black" }}
               onClick={() => router.back()}
             >
               Cancel
@@ -497,7 +498,7 @@ export default function EditCustomRecipePage() {
               (ing, i) =>
                 ing.ingredient && (
                   <li key={i}>
-                    {ing.ingredient} — {ing.quantity} {ing.unit}
+                    {ing.quantity} {ing.unit} — {ing.ingredient}
                   </li>
                 )
             )}

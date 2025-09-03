@@ -64,7 +64,7 @@ const UnitAutocompleteInput: React.FC<UnitProps> = ({ value, onChange }) => {
     <Popover isOpen={isOpen}>
       <PopoverTrigger>
         <Input
-          placeholder="Qty (e.g. 2 cups)"
+          placeholder="Unit (e.g. 2 cups)"
           value={query}
           onChange={handleChange}
         />

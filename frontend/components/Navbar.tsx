@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -34,7 +34,7 @@ function handleLogout() {
   window.location.href = "/";
 }
 
-// Include an icon (emoji for now) on each link
+// Navigation links
 const links = [
   { name: "Home", href: "/home", icon: "🏠" },
   { name: "Features", href: "/features", icon: "✨" },
@@ -58,7 +58,6 @@ const Navbar: React.FC = () => {
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
-          console.log("Parsed user:", parsedUser);
           setUsername(parsedUser.name || null);
         } catch {
           setUsername(null);
@@ -78,8 +77,8 @@ const Navbar: React.FC = () => {
   return (
     <Box
       bg={isScrolled ? "white" : "transparent"}
-      px={6}
-      py={4}
+      px={{ base: 4, md: 6, lg: 10 }}
+      py={{ base: 3, md: 4 }}
       position="sticky"
       top={0}
       zIndex={1000}
@@ -97,36 +96,42 @@ const Navbar: React.FC = () => {
         <ChakraLink
           as={NextLink}
           href="/"
-          fontSize={{ base: "2xl", md: "3xl" }}
-          fontWeight="bold"
-          color="black"
-          _hover={{ opacity: 0.7 }}
+          _hover={{ opacity: 0.8 }}
+          display="flex"
+          alignItems="center"
         >
-          GottaGoGrocery
+          <Image
+            src="/gggLogo.png"
+            alt="GottaGoGrocery Logo"
+            width={160} // adjust as needed
+            height={50} // adjust as needed
+            style={{ height: "auto", width: "auto", maxHeight: "170px" }}
+          />
         </ChakraLink>
 
-        {/* Desktop Buttons */}
+        {/* Desktop Nav */}
         <HStack
-          spacing={{ base: 2, md: 3, lg: 4 }}
-          display={{ base: "none", lg: "flex" }} // change to lg so laptop width uses hamburger
+          spacing={{ base: 2, md: 4, lg: 6 }}
+          display={{ base: "none", md: "flex" }}
           align="center"
+          flexWrap="wrap"
         >
           {links.map((link) => (
             <MotionButton
               key={link.name}
               as={NextLink}
               href={link.href}
-              leftIcon={<span style={{ fontSize: "0.8rem" }}>{link.icon}</span>}
+              leftIcon={<span style={{ fontSize: "1.2rem" }}>{link.icon}</span>}
               bg="white"
               border="1px solid #cead7fff"
               color="#2d452c"
               _hover={{ bg: "#faeddb", textDecoration: "none" }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              fontSize="xs" // 👈 made smaller
-              px={{ base: 2, md: 3 }}
+              fontSize={{ base: "sm", md: "md", lg: "lg" }}
+              px={{ base: 2, md: 4 }}
               py={{ base: 1, md: 2 }}
-              fontWeight={900} // 👈 made bolder
+              fontWeight="700"
             >
               {link.name}
             </MotionButton>
@@ -138,8 +143,8 @@ const Navbar: React.FC = () => {
                 onClick={handleLogout}
                 colorScheme="red"
                 variant="outline"
-                fontSize="sm" // 👈 smaller
-                px={{ base: 2, md: 3 }}
+                fontSize={{ base: "sm", md: "md", lg: "lg" }}
+                px={{ base: 2, md: 4 }}
                 fontWeight="700"
               >
                 Sign Out
@@ -149,11 +154,11 @@ const Navbar: React.FC = () => {
                 <Circle
                   as={NextLink}
                   href="/account/profile"
-                  size={{ base: "35px", md: "40px", lg: "45px" }}
+                  size={{ base: "40px", md: "45px", lg: "50px" }}
                   bg="#3c5b3a"
                   color="white"
                   fontWeight="bold"
-                  fontSize={{ base: "sm", md: "md", lg: "lg" }}
+                  fontSize={{ base: "md", md: "lg", lg: "xl" }}
                   _hover={{ bg: "#2d452c" }}
                 >
                   {username.charAt(0).toUpperCase()}
@@ -166,29 +171,29 @@ const Navbar: React.FC = () => {
               href="/account/signin"
               bg="#3c5b3a"
               color="white"
-              px={{ base: 3, md: 4 }}
+              px={{ base: 3, md: 5 }}
               py={{ base: 2, md: 3 }}
               borderRadius="full"
               _hover={{ bg: "#2d452c" }}
               whileHover={{ scale: 1.05 }}
-              fontSize="sm" // 👈 smaller
+              fontSize={{ base: "sm", md: "md", lg: "lg" }}
             >
               Sign In
             </MotionButton>
           )}
         </HStack>
 
-        {/* Hamburger icon for mobile */}
+        {/* Mobile Hamburger */}
         <IconButton
           aria-label="Open menu"
-          icon={<HamburgerIcon />}
+          icon={<HamburgerIcon boxSize={6} />}
           display={{ base: "flex", md: "none" }}
           onClick={onOpen}
           variant="ghost"
         />
       </MotionFlex>
 
-      {/* Mobile drawer */}
+      {/* Mobile Drawer */}
       <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
         <DrawerOverlay />
         <DrawerContent bg="white">
@@ -204,7 +209,8 @@ const Navbar: React.FC = () => {
                   justifyContent="flex-start"
                   onClick={onClose}
                   variant="ghost"
-                  fontSize="sm" // 👈 was xl, now smaller
+                  fontSize="lg"
+                  py={6}
                 >
                   {link.name}
                 </Button>
@@ -218,6 +224,7 @@ const Navbar: React.FC = () => {
                       onClose();
                     }}
                     colorScheme="red"
+                    fontSize="lg"
                   >
                     Sign Out
                   </Button>
@@ -226,11 +233,11 @@ const Navbar: React.FC = () => {
                     <Circle
                       as={NextLink}
                       href="/account/profile"
-                      size="45px"
+                      size="55px"
                       bg="#3c5b3a"
                       color="white"
                       fontWeight="bold"
-                      fontSize="lg"
+                      fontSize="xl"
                       _hover={{ bg: "#2d452c" }}
                     >
                       {username.charAt(0).toUpperCase()}
@@ -245,6 +252,7 @@ const Navbar: React.FC = () => {
                   color="white"
                   _hover={{ bg: "#2d452c" }}
                   onClick={onClose}
+                  fontSize="lg"
                 >
                   Sign In
                 </Button>
