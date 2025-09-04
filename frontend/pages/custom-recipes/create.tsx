@@ -139,6 +139,9 @@ export default function CreateCustomRecipePage() {
   const [floatingIcons, setFloatingIcons] = useState<React.ReactElement[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   // 🚀 Auth check
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -218,14 +221,23 @@ export default function CreateCustomRecipePage() {
       return;
     }
 
-    await axios.post("http://localhost:5000/api/custom-recipes", {
-      userId: user.id,
-      title,
-      recipeDescription,
-      serving,
-      ingredients,
-      steps,
-      notes,
+    const formData = new FormData();
+    formData.append("userId", user.id);
+    formData.append("title", title);
+    formData.append("recipeDescription", recipeDescription);
+    formData.append("serving", serving);
+    formData.append("notes", notes);
+
+    // stringify arrays because FormData only supports strings/files
+    formData.append("ingredients", JSON.stringify(ingredients));
+    formData.append("steps", JSON.stringify(steps));
+
+    if (image) {
+      formData.append("image", image);
+    }
+
+    await axios.post("http://localhost:5000/api/custom-recipes", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
 
     toast({ status: "success", title: "Recipe created!" });
@@ -265,6 +277,19 @@ export default function CreateCustomRecipePage() {
           <Heading mb={6} color="#344e41">
             Create a Custom Recipe 💡
           </Heading>
+
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setImage(file);
+              if (file) {
+                setImagePreview(URL.createObjectURL(file));
+              }
+            }}
+            bg="white"
+          />
 
           <VStack spacing={6} align="stretch">
             <Input
@@ -450,6 +475,17 @@ export default function CreateCustomRecipePage() {
           <Heading mb={4} color="#344e41">
             Live Preview 🧾
           </Heading>
+
+          {imagePreview && (
+            <Box mt={3}>
+              <Heading size="sm">Photo Preview:</Heading>
+              <img
+                src={imagePreview}
+                alt="Preview"
+                style={{ maxWidth: "100%", borderRadius: "8px" }}
+              />
+            </Box>
+          )}
 
           <Text fontWeight="bold" fontSize="2xl" color="#344e41">
             {title || "Recipe Title"}

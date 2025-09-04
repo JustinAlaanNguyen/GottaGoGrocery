@@ -15,6 +15,7 @@ import {
   Divider,
   Grid,
   GridItem,
+  Image,
 } from "@chakra-ui/react";
 
 type Ingredient = {
@@ -31,7 +32,6 @@ type Step = {
   stepNumber: number;
   description: string;
 };
-
 type Recipe = {
   id: number;
   userId: number;
@@ -43,8 +43,8 @@ type Recipe = {
   updated_at: string;
   ingredients: Ingredient[];
   steps: Step[];
+  image?: string | null; // 👈 add this
 };
-
 export default function CustomRecipeDetails() {
   const router = useRouter();
   const { id } = router.query;
@@ -105,6 +105,20 @@ export default function CustomRecipeDetails() {
           maxW="900px"
           boxShadow="lg"
         >
+          {/* Recipe Image */}
+          {recipe.image && (
+            <Box mb={6} display="flex" justifyContent="center">
+              <Image
+                src={recipe.image}
+                alt={recipe.title}
+                borderRadius="lg"
+                maxH="400px"
+                objectFit="cover"
+                boxShadow="md"
+              />
+            </Box>
+          )}
+
           {/* Title */}
           <Heading
             as="h1"

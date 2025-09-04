@@ -5,6 +5,7 @@
         "customrecipeingredient",
         "customrecipestep",
         "custRecipId",
+        "Intolerances",
         "nextauth",
         "phonepic",
         "savedrecipe",

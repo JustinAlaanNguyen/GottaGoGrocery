@@ -1,19 +1,32 @@
 const db = require("../config/db"); // Adjust path to your DB connection
+const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
+const fs = require("fs");
+const path = require("path");
 
-// Create a new custom recipe with ingredients, steps, and notes
 exports.createCustomRecipe = async (req, res) => {
-  const {
-    userId,
-    title,
-    recipeDescription,
-    serving,
-    ingredients,
-    steps,
-    notes,
-  } = req.body;
+  let { userId, title, recipeDescription, serving, ingredients, steps, notes } =
+    req.body;
+
+  // multer will attach file info
+  const imageUrl = req.file ? `/uploads/recipes/${req.file.filename}` : null;
 
   if (!userId || !title || !ingredients || !steps) {
     return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  // 🚨 Parse JSON strings into arrays
+  try {
+    if (typeof ingredients === "string") {
+      ingredients = JSON.parse(ingredients);
+    }
+    if (typeof steps === "string") {
+      steps = JSON.parse(steps);
+    }
+  } catch (err) {
+    console.error("Error parsing ingredients/steps:", err);
+    return res
+      .status(400)
+      .json({ message: "Invalid ingredients or steps format" });
   }
 
   const conn = await db.getConnection();
@@ -22,8 +35,8 @@ exports.createCustomRecipe = async (req, res) => {
   try {
     // Insert recipe
     const [recipeResult] = await conn.query(
-      "INSERT INTO customrecipe (userId, title, recipeDescription, serving, notes) VALUES (?, ?, ?, ?, ?)",
-      [userId, title, recipeDescription, serving, notes || null]
+      "INSERT INTO customrecipe (userId, title, recipeDescription, serving, notes, imageUrl) VALUES (?, ?, ?, ?, ?, ?)",
+      [userId, title, recipeDescription, serving, notes || null, imageUrl]
     );
     const custRecipId = recipeResult.insertId;
 
@@ -41,14 +54,6 @@ exports.createCustomRecipe = async (req, res) => {
         "INSERT INTO customrecipestep (userId, custRecipId, stepNumber, description) VALUES (?, ?, ?, ?)",
         [userId, custRecipId, i + 1, steps[i]]
       );
-    }
-
-    // Update notes in its own column
-    if (notes) {
-      await conn.query("UPDATE customrecipe SET notes = ? WHERE id = ?", [
-        notes,
-        custRecipId,
-      ]);
     }
 
     await conn.commit();
@@ -72,7 +77,13 @@ exports.getRecentCustomRecipes = async (req, res) => {
       "SELECT * FROM customrecipe WHERE userId = ? ORDER BY created_at DESC LIMIT 5",
       [userId]
     );
-    res.json(rows);
+
+    const recipes = rows.map((r) => ({
+      ...r,
+      imageUrl: r.imageUrl ? `${BASE_URL}${r.imageUrl}` : null,
+    }));
+
+    res.json(recipes);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -88,7 +99,9 @@ exports.getCustomRecipeById = async (req, res) => {
     );
     if (!recipe) return res.status(404).json({ message: "Not found" });
 
-    // ✅ Added "unit"
+    // ✅ Add full URL for image
+    recipe.imageUrl = recipe.imageUrl ? `${BASE_URL}${recipe.imageUrl}` : null;
+
     const [ingredients] = await db.query(
       "SELECT id, ingredient, quantity, unit FROM customrecipeingredient WHERE custRecipId = ?",
       [recipeId]
@@ -106,25 +119,19 @@ exports.getCustomRecipeById = async (req, res) => {
       serving: recipe.serving,
       ingredients,
       steps,
-      notes: recipe.notes, // ✅ already correct
+      notes: recipe.notes,
+      image: recipe.imageUrl, // 👈 make it consistent with frontend
     });
   } catch (err) {
     console.error("Fetch customRecipe:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
-
 exports.updateCustomRecipe = async (req, res) => {
   const recipeId = req.params.id;
-  const {
-    title,
-    recipeDescription,
-    serving,
-    ingredients,
-    steps,
-    notes,
-    userId,
-  } = req.body;
+
+  let { title, recipeDescription, serving, ingredients, steps, notes, userId } =
+    req.body; // use let instead of const
 
   console.log("🔹 Incoming update request:", {
     recipeId,
@@ -136,15 +143,55 @@ exports.updateCustomRecipe = async (req, res) => {
     steps,
   });
 
+  try {
+    if (typeof ingredients === "string") {
+      ingredients = JSON.parse(ingredients);
+    }
+    if (typeof steps === "string") {
+      steps = JSON.parse(steps);
+    }
+  } catch (err) {
+    console.error("❌ JSON parse error:", err);
+    return res
+      .status(400)
+      .json({ message: "Invalid ingredients/steps format" });
+  }
+
+  const imageUrl = req.file ? `/uploads/recipes/${req.file.filename}` : null;
   const conn = await db.getConnection();
   await conn.beginTransaction();
 
   try {
     // --- RECIPE ---
     console.log("🔹 Updating main recipe...");
+
+    // get existing recipe
+    const [[existingRecipe]] = await conn.query(
+      "SELECT imageUrl FROM customrecipe WHERE id = ?",
+      [recipeId]
+    );
+
+    let finalImageUrl = existingRecipe?.imageUrl || null;
+    if (imageUrl) {
+      if (existingRecipe?.imageUrl) {
+        const oldPath = path.join(__dirname, "../..", existingRecipe.imageUrl); // ✅ fixed path
+        fs.unlink(oldPath, (err) => {
+          if (err) console.warn("Could not delete old image:", err.message);
+        });
+      }
+      finalImageUrl = imageUrl;
+    }
+
     const [result] = await conn.query(
-      "UPDATE customrecipe SET title = ?, recipeDescription = ?, serving = ?, notes = ? WHERE id = ?",
-      [title, recipeDescription, serving, notes || null, recipeId]
+      "UPDATE customrecipe SET title = ?, recipeDescription = ?, serving = ?, notes = ?, imageUrl = ? WHERE id = ?",
+      [
+        title,
+        recipeDescription,
+        serving,
+        notes || null,
+        finalImageUrl,
+        recipeId,
+      ]
     );
 
     if (result.affectedRows === 0) {
@@ -266,7 +313,6 @@ exports.deleteCustomRecipe = async (req, res) => {
     conn.release();
   }
 };
-
 
 // Get grocery list (ingredients only) for a recipe
 exports.getGroceryList = async (req, res) => {

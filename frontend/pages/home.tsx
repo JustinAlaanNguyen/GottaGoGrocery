@@ -29,11 +29,6 @@ const fadeInUp = {
   transition: { duration: 0.6, ease: "easeOut" },
 };
 
-const bounceButton = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
-};
-
 const floatingAnimation = {
   y: [0, -10, 0, 10, 0],
   transition: {
@@ -55,6 +50,8 @@ type Tasks = {
   addPhone: boolean;
   customRecipe: boolean;
   savedRecipe: boolean;
+  sendEmail?: boolean;
+  sendPhone?: boolean;
 };
 
 export default function UserHome() {
@@ -67,53 +64,86 @@ export default function UserHome() {
     addPhone: false,
     customRecipe: false,
     savedRecipe: false,
+    sendEmail: false,
+    sendPhone: false,
   });
-  const [showTasks, setShowTasks] = useState(true); // 👈 control collapse
+  const [showTasks, setShowTasks] = useState(true);
+  const [userId, setUserId] = useState<number | null>(null);
 
   const allCompleted = Object.values(tasks).every(Boolean);
   const router = useRouter();
 
+  // 🔑 reusable fetchData function
+  const fetchData = async () => {
+    if (!userId) return;
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/user/home/${userId}`
+      );
+      const data = res.data;
+
+      setUsername(data.username || "User");
+      setSavedCount(data.savedCount || 0);
+      setCustomCount(data.customCount || 0);
+      setRecent(data.recent || []);
+      setTasks(
+        data.tasks || {
+          addPhone: false,
+          customRecipe: false,
+          savedRecipe: false,
+          sendEmail: false,
+          sendPhone: false,
+        }
+      );
+    } catch (err) {
+      console.error("Failed to fetch home data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔑 load user + fetch tasks on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
       router.push("/account/signin");
-      return; // <-- prevents fetchData from running
+      return;
     }
 
     const user = JSON.parse(storedUser);
-    const userId = user.id;
-    if (!userId) {
+    if (!user.id) {
       router.push("/account/signin");
-      return; // <-- double safety
+      return;
     }
 
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/api/user/home/${userId}`
-        );
-        const data = res.data;
+    setUserId(user.id);
+  }, [router]);
 
-        setUsername(data.username || user.name || "User");
-        setSavedCount(data.savedCount || 0);
-        setCustomCount(data.customCount || 0);
-        setRecent(data.recent || []);
-        setTasks(
-          data.tasks || {
-            addPhone: false,
-            customRecipe: false,
-            savedRecipe: false,
-          }
-        );
-      } catch (err) {
-        console.error("Failed to fetch home data:", err);
-      } finally {
-        setLoading(false);
+  // 🔑 refetch whenever userId is set
+  useEffect(() => {
+    if (userId) {
+      fetchData();
+    }
+  }, [userId]);
+
+  // 🔑 refresh tasks when user comes back to this page
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchData();
       }
     };
 
-    fetchData();
-  }, [router]);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [userId]);
+
+  // 🔑 optimistic update
+  const markTaskCompleted = (id: keyof Tasks) => {
+    setTasks((prev) => ({ ...prev, [id]: true }));
+  };
 
   if (loading) {
     return (
@@ -139,7 +169,6 @@ export default function UserHome() {
         zIndex={0}
         animate={floatingAnimation}
       />
-
       <MotionBox
         position="absolute"
         w="250px"
@@ -169,6 +198,7 @@ export default function UserHome() {
             Hi {username}! 👋 Lets get cooking!
           </Heading>
         </MotionBox>
+
         {/* Getting Started Tasks */}
         {!allCompleted && (
           <>
@@ -214,12 +244,12 @@ export default function UserHome() {
                   {
                     id: "sendEmail",
                     label: "Send a grocery list to your email",
-                    route: "recipes/saved-recipes",
+                    route: "/recipes/saved-recipes",
                   },
                   {
                     id: "sendPhone",
                     label: "Send a grocery list to your phone number",
-                    route: "recipes/saved-recipes",
+                    route: "/recipes/saved-recipes",
                   },
                 ].map((task) => {
                   const completed = tasks[task.id as keyof Tasks];
@@ -245,7 +275,10 @@ export default function UserHome() {
                             {!completed && (
                               <motion.div
                                 animate={{ y: [0, -4, 0] }}
-                                transition={{ duration: 1.5, repeat: Infinity }}
+                                transition={{
+                                  duration: 1.5,
+                                  repeat: Infinity,
+                                }}
                               >
                                 <FaExclamationCircle
                                   color="#d9534f"
@@ -256,9 +289,12 @@ export default function UserHome() {
                             <Button
                               size="sm"
                               colorScheme={completed ? "green" : "blue"}
-                              onClick={() =>
-                                !completed && router.push(task.route)
-                              }
+                              onClick={() => {
+                                if (!completed) {
+                                  markTaskCompleted(task.id as keyof Tasks); // optimistic ✅
+                                  router.push(task.route); // go do the task
+                                }
+                              }}
                             >
                               {completed ? "Done ✅" : "Start"}
                             </Button>
@@ -298,15 +334,9 @@ export default function UserHome() {
             </CardBody>
           </MotionCard>
 
-          <MotionCard
-            {...fadeInUp}
-            bg="white"
-            shadow="md"
-            borderRadius="xl"
-            fontWeight="600"
-          >
+          <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
             <CardBody textAlign="center">
-              <Text fontSize="xl" color="#344e41">
+              <Text fontSize="xl" color="#344e41" fontWeight="600">
                 {savedCount > 0
                   ? `You’ve saved ${savedCount} recipe${
                       savedCount > 1 ? "s" : ""
@@ -316,15 +346,9 @@ export default function UserHome() {
             </CardBody>
           </MotionCard>
 
-          <MotionCard
-            {...fadeInUp}
-            bg="white"
-            shadow="md"
-            borderRadius="xl"
-            fontWeight="600"
-          >
+          <MotionCard {...fadeInUp} bg="white" shadow="md" borderRadius="xl">
             <CardBody textAlign="center">
-              <Text fontSize="xl" color="#344e41">
+              <Text fontSize="xl" color="#344e41" fontWeight="600">
                 {customCount + savedCount > 0
                   ? `You’ve cooked ${customCount + savedCount} recipe${
                       customCount + savedCount > 1 ? "s" : ""

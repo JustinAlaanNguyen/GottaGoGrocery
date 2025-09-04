@@ -2,7 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/home": "pages/home.js",
-  "/account/signin": "pages/account/signin.js",
-  "/account/signup": "pages/account/signup.js"
+  "/saved-searched-recipes/[id]": "pages/saved-searched-recipes/[id].js",
+  "/search-recipe": "pages/search-recipe.js",
+  "/": "pages/index.js"
 }

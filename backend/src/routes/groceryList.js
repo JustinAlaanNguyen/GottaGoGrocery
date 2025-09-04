@@ -99,7 +99,7 @@ router.post("/email", async (req, res) => {
       html,
       text,
     });
-
+    await db.query("UPDATE user SET sentEmailList = 1 WHERE id = ?", [userId]);
     return res.json({ ok: true, message: "Email sent" });
   } catch (err) {
     console.error("Error sending grocery list email:", err);
@@ -138,7 +138,7 @@ router.post("/sms", async (req, res) => {
       from: process.env.TWILIO_PHONE_NUMBER, // your Twilio number
       to: phone,
     });
-
+    await db.query("UPDATE user SET sentSmsList = 1 WHERE id = ?", [userId]);
     res.json({ ok: true });
   } catch (err) {
     console.error("Error sending SMS:", err);

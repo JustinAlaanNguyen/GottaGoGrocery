@@ -8,15 +8,18 @@ import {
   SimpleGrid,
   Image,
   Text,
-  Card,
-  CardBody,
-  Spinner,
+  Flex,
+  Badge,
+  Skeleton,
   Button,
+  HStack,
+  Select,
 } from "@chakra-ui/react";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import { motion } from "framer-motion";
+import { useRouter } from "next/router";
 
 const MotionBox = motion(Box);
 
@@ -25,13 +28,30 @@ type Recipe = {
   title: string;
   image: string;
   ingredientCount: number;
+  vegetarian?: boolean;
+  vegan?: boolean;
+  glutenFree?: boolean;
+};
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 30 },
+  transition: { duration: 0.4 },
 };
 
 export default function SearchRecipe() {
   const [searchTerm, setSearchTerm] = useState("");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const [offset, setOffset] = useState(0);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [filters, setFilters] = useState({
+    cuisine: "",
+    diet: "",
+    intolerances: "",
+  });
+  const router = useRouter();
   const cutleryEmojis = ["🍴", "🥄"];
 
   const cutlery = useMemo(() => {
@@ -69,28 +89,32 @@ export default function SearchRecipe() {
     });
   }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = async (isLoadMore = false) => {
     if (!searchTerm) return;
+    if (!isLoadMore) {
+      setRecipes([]);
+      setOffset(0);
+    }
     setLoading(true);
     try {
       const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
 
-      // Step 1: Search recipes
       const res = await axios.get(
         `https://api.spoonacular.com/recipes/complexSearch`,
         {
           params: {
             query: searchTerm,
             number: 6,
+            offset: isLoadMore ? offset + 6 : 0,
             sort: "relevant",
             apiKey,
+            ...filters,
           },
         }
       );
 
       const recipesData = res.data.results;
 
-      // Step 2: Fetch full info for each recipe to get ingredients
       const detailedRecipes = await Promise.all(
         recipesData.map(async (r: any) => {
           try {
@@ -101,8 +125,11 @@ export default function SearchRecipe() {
             return {
               id: r.id,
               title: r.title,
-              image: r.image,
+              image: details.data.image || r.image, // 👈 use high-res from info endpoint
               ingredientCount: details.data.extendedIngredients?.length || 0,
+              vegetarian: details.data.vegetarian,
+              vegan: details.data.vegan,
+              glutenFree: details.data.glutenFree,
             };
           } catch (error) {
             console.error("Error fetching details:", error);
@@ -116,7 +143,17 @@ export default function SearchRecipe() {
         })
       );
 
-      setRecipes(detailedRecipes);
+      setRecipes((prev) =>
+        isLoadMore ? [...prev, ...detailedRecipes] : detailedRecipes
+      );
+      setOffset((prev) => (isLoadMore ? prev + 6 : 0));
+
+      if (!isLoadMore) {
+        setSearchHistory((prev) => {
+          const updated = [searchTerm, ...prev.filter((t) => t !== searchTerm)];
+          return updated.slice(0, 3); // last 3
+        });
+      }
     } catch (err) {
       console.error("API Error:", err);
     } finally {
@@ -127,14 +164,12 @@ export default function SearchRecipe() {
   return (
     <Box
       minH="100vh"
-      pt={0} // 🔹 no padding on top
-      px={6} // 🔹 keep side padding
-      pb={6} // 🔹 keep bottom padding
+      px={6}
+      pb={6}
       bg="#ccd5ae"
       position="relative"
       overflow="hidden"
     >
-      {/* Floating background icons */}
       <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
         {cutlery}
       </Box>
@@ -145,6 +180,7 @@ export default function SearchRecipe() {
         Search for a Recipe 🍽️
       </Heading>
 
+      {/* Filters & Search */}
       <VStack spacing={4} mb={8}>
         <Input
           placeholder="Enter dish name..."
@@ -154,10 +190,54 @@ export default function SearchRecipe() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           maxW="500px"
-          focusBorderColor="#cead7f"
+          transition="all 0.3s ease"
+          _focus={{ transform: "scale(1.05)", borderColor: "#cead7f" }}
         />
+        <HStack spacing={6}>
+          <Select
+            minW="220px"
+            placeholder="Cuisine"
+            value={filters.cuisine}
+            onChange={(e) =>
+              setFilters({ ...filters, cuisine: e.target.value })
+            }
+          >
+            <option value="italian">Italian</option>
+            <option value="mexican">Mexican</option>
+            <option value="chinese">Chinese</option>
+            <option value="indian">Indian</option>
+          </Select>
+          <Select
+            minW="220px"
+            placeholder="Diet"
+            value={filters.diet}
+            onChange={(e) => setFilters({ ...filters, diet: e.target.value })}
+          >
+            <option value="vegetarian">Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="paleo">Paleo</option>
+          </Select>
+          <Select
+            minW="220px"
+            placeholder="Intolerances"
+            value={filters.intolerances}
+            onChange={(e) =>
+              setFilters({ ...filters, intolerances: e.target.value })
+            }
+          >
+            <option value="dairy">Dairy-Free</option>
+            <option value="egg">Egg-Free</option>
+            <option value="gluten">Gluten-Free</option>
+            <option value="peanut">Peanut-Free</option>
+            <option value="seafood">Seafood-Free</option>
+            <option value="sesame">Sesame-Free</option>
+            <option value="soy">Soy-Free</option>
+            <option value="tree nut">Tree Nut-Free</option>
+            <option value="wheat">Wheat-Free</option>
+          </Select>
+        </HStack>
         <Button
-          onClick={handleSearch}
+          onClick={() => handleSearch(false)}
           bg="#3c5b3a"
           color="white"
           size="lg"
@@ -166,38 +246,126 @@ export default function SearchRecipe() {
         >
           Search
         </Button>
+        {/* Search History */}
+        <HStack spacing={3}>
+          <h1> Recent Searches:</h1>
+          {searchHistory.map((term, idx) => (
+            <Button
+              key={idx}
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSearchTerm(term);
+                handleSearch(false);
+              }}
+            >
+              {term}
+            </Button>
+          ))}
+        </HStack>
       </VStack>
 
       {loading ? (
-        <Spinner size="xl" color="#3c5b3a" />
-      ) : (
         <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={6}>
-          {recipes.map((recipe) => (
-            <Card
-              key={recipe.id}
-              bg="white"
-              borderRadius="xl"
-              shadow="md"
-              _hover={{ transform: "scale(1.02)" }}
-              transition="0.2s"
-            >
-              <CardBody>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Box key={i} borderRadius="2xl" overflow="hidden" shadow="md">
+              <Skeleton height="220px" />
+              <Box p={4}>
+                <Skeleton height="20px" mb={2} />
+                <Skeleton height="14px" width="60%" />
+              </Box>
+            </Box>
+          ))}
+        </SimpleGrid>
+      ) : recipes.length === 0 ? (
+        <Flex direction="column" align="center" mt={10}>
+          <Text fontSize="4xl">🔍</Text>
+          <Heading size="md" color="#344e41" mb={2}>
+            No results found
+          </Heading>
+          <Text color="#344e41">Try another search or adjust filters!</Text>
+        </Flex>
+      ) : (
+        <>
+          <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={6}>
+            {recipes.map((recipe, idx) => (
+              <MotionBox
+                key={recipe.id}
+                {...fadeInUp}
+                transition={{ delay: idx * 0.05 }}
+                position="relative"
+                overflow="hidden"
+                borderRadius="2xl"
+                shadow="lg"
+                bg="white"
+                border="1px solid #e9edc9"
+                whileHover={{ scale: 1.02 }}
+              >
                 <Image
                   src={recipe.image}
                   alt={recipe.title}
-                  borderRadius="md"
-                  mb={3}
+                  w="100%"
+                  h="220px"
+                  objectFit="cover"
                 />
-                <Text fontWeight="bold" fontSize="lg" color="#3c5b3a">
-                  {recipe.title}
-                </Text>
-                <Text color="#2d452c">
-                  Ingredients: {recipe.ingredientCount}
-                </Text>
-              </CardBody>
-            </Card>
-          ))}
-        </SimpleGrid>
+                <MotionBox
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  position="absolute"
+                  inset={0}
+                  bg="rgba(52, 78, 65, 0.7)"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Button
+                    size="sm"
+                    bg="#faedcd"
+                    color="#344e41"
+                    _hover={{ bg: "white" }}
+                    onClick={() => router.push(`/search-recipes/${recipe.id}`)}
+                  >
+                    View Recipe
+                  </Button>
+                </MotionBox>
+                <Box p={4}>
+                  <Heading size="sm" color="#344e41" noOfLines={1}>
+                    {recipe.title}
+                  </Heading>
+                  <Text color="#2d452c" fontSize="sm">
+                    {recipe.vegetarian
+                      ? "🥕 Vegetarian"
+                      : recipe.vegan
+                      ? "🥦 Vegan"
+                      : recipe.glutenFree
+                      ? "🌾 Gluten-Free"
+                      : "🍖 Contains Meat"}
+                  </Text>
+                  <HStack mt={2}>
+                    {recipe.vegetarian && (
+                      <Badge colorScheme="green">Veg</Badge>
+                    )}
+                    {recipe.vegan && <Badge colorScheme="purple">Vegan</Badge>}
+                    {recipe.glutenFree && (
+                      <Badge colorScheme="yellow">Gluten-Free</Badge>
+                    )}
+                  </HStack>
+                </Box>
+              </MotionBox>
+            ))}
+          </SimpleGrid>
+          <Flex justify="center" mt={8}>
+            <Button
+              onClick={() => handleSearch(true)}
+              bg="#d4a373"
+              color="white"
+              _hover={{ bg: "#ccd5ae", color: "black" }}
+            >
+              Load More
+            </Button>
+          </Flex>
+        </>
       )}
     </Box>
   );

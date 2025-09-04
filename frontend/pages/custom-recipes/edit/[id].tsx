@@ -133,6 +133,9 @@ export default function EditCustomRecipePage() {
   const [floatingIcons, setFloatingIcons] = useState<React.ReactElement[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [image, setImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
@@ -149,6 +152,7 @@ export default function EditCustomRecipePage() {
           `http://localhost:5000/api/custom-recipes/${params.id}`
         );
         const data = res.data;
+        setPreview(data.image || null);
         setTitle(data.title);
         setRecipeDescription(data.recipeDescription || "");
         setServing(data.serving || "");
@@ -205,31 +209,26 @@ export default function EditCustomRecipePage() {
     setSteps(steps.filter((_, idx) => idx !== i));
 
   const handleUpdate = async () => {
-    if (!title.trim() || !recipeDescription.trim()) {
-      return toast({
-        status: "warning",
-        title: "Title & description required",
-      });
-    }
-    const servingsNum = Number(serving);
-    if (!Number.isInteger(servingsNum) || servingsNum <= 0) {
-      return toast({
-        status: "warning",
-        title: "Servings must be a positive whole number",
-      });
-    }
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const formData = new FormData();
+
+    formData.append("userId", storedUser.id);
+    formData.append("title", title);
+    formData.append("recipeDescription", recipeDescription);
+    formData.append("serving", serving);
+    formData.append("notes", notes);
+
+    formData.append("ingredients", JSON.stringify(ingredients));
+    formData.append("steps", JSON.stringify(steps));
+
+    if (image) formData.append("image", image);
 
     try {
-      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-      await axios.put(`http://localhost:5000/api/custom-recipes/${params.id}`, {
-        userId: storedUser.id,
-        title,
-        recipeDescription,
-        serving,
-        ingredients,
-        steps,
-        notes,
-      });
+      await axios.put(
+        `http://localhost:5000/api/custom-recipes/${params.id}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
       toast({ status: "success", title: "Recipe updated!" });
       router.push(`/custom-recipes/${params.id}`);
     } catch (err) {
@@ -273,6 +272,29 @@ export default function EditCustomRecipePage() {
           </Heading>
 
           <VStack spacing={6} align="stretch">
+            <Box>
+              <Text fontWeight="bold">Recipe Image</Text>
+              {preview && (
+                <Box mb={3}>
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    style={{ maxHeight: "200px", borderRadius: "8px" }}
+                  />
+                </Box>
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setImage(e.target.files[0]);
+                    setPreview(URL.createObjectURL(e.target.files[0]));
+                  }
+                }}
+              />
+            </Box>
+
             <Input
               placeholder="Recipe Title"
               value={title}

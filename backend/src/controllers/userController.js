@@ -3,9 +3,11 @@
 const db = require("../config/db");
 const twilio = require("twilio");
 
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-
-
+const client = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
 exports.getUserHome = async (req, res) => {
   const userId = req.params.id;
@@ -13,9 +15,11 @@ exports.getUserHome = async (req, res) => {
 
   try {
     // Get username + phone
-    const [[user]] = await db.query("SELECT username, phone FROM user WHERE id = ?", [
-      userId,
-    ]);
+    const [[user]] = await db.query(
+      "SELECT username, phone, sentEmailList, sentSmsList FROM user WHERE id = ?",
+      [userId]
+    );
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // Counts
@@ -53,9 +57,11 @@ exports.getUserHome = async (req, res) => {
 
     // ✅ Task Completion
     const tasks = {
-      addPhone: !!user.phone,               // true if phone saved
+      addPhone: !!user.phone,
       customRecipe: customCountRow.count > 0,
       savedRecipe: savedCountRow.count > 0,
+      sendEmail: !!user.sentEmailList,
+      sendPhone: !!user.sentSmsList,
     };
 
     res.json({
@@ -72,36 +78,40 @@ exports.getUserHome = async (req, res) => {
   }
 };
 
-
 exports.getUserRecipes = async (req, res) => {
   const userId = req.params.id;
 
   try {
-    // Fetch custom recipes
+    // Fetch custom recipes WITH imageUrl
     const [customRecipes] = await db.query(
-      `SELECT id, title, created_at FROM customrecipe WHERE userId = ? ORDER BY created_at DESC`,
+      `SELECT id, title, created_at, imageUrl FROM customrecipe WHERE userId = ? ORDER BY created_at DESC`,
       [userId]
     );
 
     // Fetch saved recipes
     const [savedRecipes] = await db.query(
-      `SELECT id, recipeLink, starRating, dateSaved FROM savedrecipe WHERE userId = ? ORDER BY dateSaved DESC`,
+      `SELECT id, title, image, recipeLink, starRating, dateSaved 
+        FROM savedrecipe 
+        WHERE userId = ? 
+        ORDER BY dateSaved DESC`,
       [userId]
     );
 
-    // Merge into a single result array so frontend can loop over it
+    // Merge results
+
     const recipes = [
       ...customRecipes.map((r) => ({
         id: r.id,
         title: r.title,
         type: "custom",
-        image: null, // you could later fetch an image column if you store one
+        image: r.imageUrl ? `${BASE_URL}${r.imageUrl}` : null,
       })),
       ...savedRecipes.map((r) => ({
         id: r.id,
-        title: r.recipeLink, // OR parse from link
+        title: r.title, // ✅ use title, not recipeLink
         type: "saved",
-        image: null,
+        image: r.image, // ✅ now returned
+        link: r.recipeLink, // optional, if you want to show a "visit recipe" button
       })),
     ];
 
@@ -159,7 +169,6 @@ exports.updateUserProfile = async (req, res) => {
   }
 };
 
-
 // Send verification code
 exports.sendPhoneVerification = async (req, res) => {
   let { phone } = req.body;
@@ -174,13 +183,15 @@ exports.sendPhoneVerification = async (req, res) => {
       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
       .verifications.create({ to: phone, channel: "sms" });
 
-    res.json({ message: "Verification code sent", status: verification.status });
+    res.json({
+      message: "Verification code sent",
+      status: verification.status,
+    });
   } catch (err) {
     console.error("Error sending phone verification:", err);
     res.status(500).json({ message: "Failed to send verification code" });
   }
 };
-
 
 // Confirm verification code
 exports.confirmPhoneVerification = async (req, res) => {
