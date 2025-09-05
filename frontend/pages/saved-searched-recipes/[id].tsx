@@ -198,7 +198,7 @@ export default function SavedRecipeDetails() {
               color="white"
               _hover={{ bg: "#ccd5ae", color: "black" }}
               onClick={() =>
-                router.push(`/saved-recipes/${recipe.id}/grocery-list`)
+                router.push(`/saved-searched-recipes/${recipe.id}/grocery-list`)
               }
             >
               🛒 Send a grocery list

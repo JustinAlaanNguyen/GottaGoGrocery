@@ -61,7 +61,9 @@ exports.getSavedRecipeGroceryList = async (req, res) => {
     const response = await fetch(
       `https://api.spoonacular.com/recipes/${recipe.recipeApiId}/information?includeNutrition=false&apiKey=${process.env.SPOONACULAR_API_KEY}`
     );
+
     const data = await response.json();
+    // console.log("🔍 Spoonacular response:", data);
 
     if (!data.extendedIngredients) {
       return res.status(404).json({ message: "No ingredients found" });

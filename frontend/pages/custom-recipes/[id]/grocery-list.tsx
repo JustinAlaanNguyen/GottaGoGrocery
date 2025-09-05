@@ -408,6 +408,7 @@ export default function GroceryListPage() {
               <Button
                 size="md"
                 w="100%"
+                mb={4}
                 bgGradient="linear(to-r, #344e41, #588157)"
                 color="white"
                 transition="all 0.3s"

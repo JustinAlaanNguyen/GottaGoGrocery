@@ -17,6 +17,7 @@ import {
   GridItem,
   Image,
 } from "@chakra-ui/react";
+import { useToast } from "@chakra-ui/react";
 
 type Ingredient = {
   id: number;
@@ -44,6 +45,7 @@ export default function SpoonacularRecipeDetails() {
   const { id } = router.query;
   const [recipe, setRecipe] = useState<RecipeDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
 
   useEffect(() => {
     if (!id) return;
@@ -209,7 +211,10 @@ export default function SpoonacularRecipeDetails() {
                   try {
                     const storedUser = localStorage.getItem("user");
                     if (!storedUser) {
-                      alert("Please sign in first.");
+                      toast({
+                        status: "warning",
+                        title: "Please sign in first.",
+                      });
                       router.push("/account/signin");
                       return;
                     }
@@ -219,20 +224,37 @@ export default function SpoonacularRecipeDetails() {
                     await axios.post(
                       "http://localhost:5000/api/saved-recipes/save",
                       {
-                        userId: user.id, // ✅ logged-in user
+                        userId: user.id,
                         recipeApiId: recipe.id,
                         recipeLink: recipe.sourceUrl,
-                        title: recipe.title, // ✅ new
-                        image: recipe.image, // ✅ new
+                        title: recipe.title,
+                        image: recipe.image,
                       }
                     );
 
-                    alert("Recipe saved!");
-                    // ✅ redirect after success
-                    router.push("http://localhost:3000/recipes/saved-recipes");
+                    toast({
+                      status: "success",
+                      title: "Recipe saved successfully! 💾",
+                      description: `${recipe.title} was added to your saved recipes.`,
+                      duration: 3000,
+                      isClosable: true,
+                    });
+
+                    // ✅ Give toast time to show before redirect
+                    setTimeout(() => {
+                      router.push(
+                        "http://localhost:3000/recipes/saved-recipes"
+                      );
+                    }, 1500);
                   } catch (err) {
                     console.error("Error saving recipe", err);
-                    alert("Failed to save recipe");
+                    toast({
+                      status: "error",
+                      title: "Failed to save recipe",
+                      description: "Please try again later.",
+                      duration: 3000,
+                      isClosable: true,
+                    });
                   }
                 }}
               >

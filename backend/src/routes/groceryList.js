@@ -106,21 +106,28 @@ router.post("/email", async (req, res) => {
     return res.status(500).json({ error: "Failed to send email" });
   }
 });
-
 // send grocery list via SMS
 router.post("/sms", async (req, res) => {
   const { userId, recipeTitle, items } = req.body;
 
   try {
+    console.log("📩 Incoming SMS request:", {
+      userId,
+      recipeTitle,
+      itemsCount: items?.length,
+    });
+
     // fetch user's phone number
     const [rows] = await db.query("SELECT phone FROM user WHERE id = ?", [
       userId,
     ]);
     if (rows.length === 0 || !rows[0].phone) {
+      console.warn("⚠️ No phone number found for user:", userId);
       return res.json({ ok: false, error: "No phone number on account" });
     }
 
     const phone = rows[0].phone;
+    console.log("✅ Found phone:", phone);
 
     // format the grocery list
     const listText = items
@@ -131,18 +138,26 @@ router.post("/sms", async (req, res) => {
       .join("\n");
 
     const message = `🛒 Grocery List for ${recipeTitle}\n\nStill Needed:\n${listText}`;
+    console.log("📝 SMS message body:\n", message);
 
     // send SMS via Twilio
-    await client.messages.create({
+    const twilioResp = await client.messages.create({
       body: message,
       from: process.env.TWILIO_PHONE_NUMBER, // your Twilio number
       to: phone,
     });
+
+    console.log("📤 Twilio response:", {
+      sid: twilioResp.sid,
+      status: twilioResp.status,
+      to: twilioResp.to,
+    });
+
     await db.query("UPDATE user SET sentSmsList = 1 WHERE id = ?", [userId]);
-    res.json({ ok: true });
+    res.json({ ok: true, sid: twilioResp.sid, status: twilioResp.status });
   } catch (err) {
-    console.error("Error sending SMS:", err);
-    res.json({ ok: false, error: "Failed to send SMS" });
+    console.error("❌ Error sending SMS:", err);
+    res.json({ ok: false, error: err.message });
   }
 });
 

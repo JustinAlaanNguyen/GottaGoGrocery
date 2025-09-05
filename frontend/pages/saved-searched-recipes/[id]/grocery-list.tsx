@@ -15,7 +15,6 @@ import {
   IconButton,
   Input,
   HStack,
-  Divider,
   Button,
   Badge,
   Card,
@@ -29,24 +28,92 @@ type Ingredient = {
   ingredient: string;
   quantity?: string;
   unit?: string;
+  isCustom?: boolean;
 };
 
 type IngredientState = Ingredient & {
   checked: boolean;
   crossed: boolean;
   note: string;
-  isCustom?: boolean;
 };
 
 export default function GroceryListPage() {
   const router = useRouter();
   const { id } = router.query;
+
   const [recipeTitle, setRecipeTitle] = useState("");
   const [ingredients, setIngredients] = useState<IngredientState[]>([]);
   const [loading, setLoading] = useState(true);
   const [newItem, setNewItem] = useState("");
-  const toast = useToast();
   const [sendingEmail, setSendingEmail] = useState(false);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchGroceryList = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/saved-recipes/${id}/grocery-list`
+        );
+        setRecipeTitle(res.data.recipeTitle);
+        setIngredients(
+          res.data.ingredients.map((ing: Ingredient) => ({
+            ...ing,
+            checked: false,
+            crossed: false,
+            note: "",
+          }))
+        );
+      } catch (err) {
+        console.error("Error fetching grocery list:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroceryList();
+  }, [id]);
+
+  const toggleCheck = (id: number) => {
+    setIngredients((prev) =>
+      prev.map((ing) =>
+        ing.id === id ? { ...ing, checked: !ing.checked } : ing
+      )
+    );
+  };
+
+  const toggleCross = (id: number) => {
+    setIngredients((prev) =>
+      prev.map((ing) =>
+        ing.id === id ? { ...ing, crossed: !ing.crossed } : ing
+      )
+    );
+  };
+
+  const updateNote = (id: number, value: string) => {
+    setIngredients((prev) =>
+      prev.map((ing) => (ing.id === id ? { ...ing, note: value } : ing))
+    );
+  };
+
+  const addCustomItem = () => {
+    if (!newItem.trim()) return;
+    const customIngredient: IngredientState = {
+      id: Date.now(),
+      ingredient: newItem.trim(),
+      checked: false,
+      crossed: false,
+      note: "",
+      isCustom: true,
+    };
+    setIngredients((prev) => [...prev, customIngredient]);
+    setNewItem("");
+  };
+
+  const neededIngredients = ingredients.filter(
+    (ing) => !ing.checked && !ing.crossed
+  );
 
   async function handleEmailClick() {
     if (neededIngredients.length === 0) {
@@ -76,7 +143,11 @@ export default function GroceryListPage() {
         })),
       };
 
-      const res = await axios.post("/api/grocery-list/email", payload);
+      const res = await axios.post(
+        "http://localhost:5000/api/grocery-list/email",
+        payload
+      );
+
       if (res.data?.ok) {
         toast({ status: "success", title: "Grocery list emailed to you!" });
       } else {
@@ -138,73 +209,6 @@ export default function GroceryListPage() {
       toast({ status: "error", title: "Failed to send text. Try again." });
     }
   }
-
-  useEffect(() => {
-    if (!id) return;
-    const fetchList = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/api/saved-recipes/${id}/grocery-list`
-        );
-
-        setRecipeTitle(res.data.title);
-        setIngredients(
-          res.data.ingredients.map((ing: Ingredient) => ({
-            ...ing,
-            checked: false,
-            crossed: false,
-            note: "",
-            isCustom: false,
-          }))
-        );
-      } catch (err) {
-        console.error("Error fetching grocery list:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchList();
-  }, [id]);
-
-  const toggleCheck = (id: number) => {
-    setIngredients((prev) =>
-      prev.map((ing) =>
-        ing.id === id ? { ...ing, checked: !ing.checked } : ing
-      )
-    );
-  };
-
-  const toggleCross = (id: number) => {
-    setIngredients((prev) =>
-      prev.map((ing) =>
-        ing.id === id ? { ...ing, crossed: !ing.crossed } : ing
-      )
-    );
-  };
-
-  const updateNote = (id: number, value: string) => {
-    setIngredients((prev) =>
-      prev.map((ing) => (ing.id === id ? { ...ing, note: value } : ing))
-    );
-  };
-
-  const addCustomItem = () => {
-    if (!newItem.trim()) return;
-    const customIngredient: IngredientState = {
-      id: Date.now(),
-      ingredient: newItem.trim(),
-      checked: false,
-      crossed: false,
-      note: "",
-      isCustom: true,
-    };
-    setIngredients((prev) => [...prev, customIngredient]);
-    setNewItem("");
-  };
-
-  const neededIngredients = ingredients.filter(
-    (ing) => !ing.checked && !ing.crossed
-  );
 
   if (loading) {
     return (
@@ -313,7 +317,7 @@ export default function GroceryListPage() {
                       {/* Note field */}
                       <Input
                         mt={2}
-                        placeholder="Add note (e.g. have half at home)"
+                        placeholder="Add note (e.g. buy organic)"
                         size="sm"
                         value={ing.note}
                         onChange={(e) => updateNote(ing.id, e.target.value)}
@@ -331,7 +335,7 @@ export default function GroceryListPage() {
               </VStack>
             </Box>
 
-            {/* RIGHT COLUMN: Custom item + Still Needed + Email */}
+            {/* RIGHT COLUMN: Custom item + Still Needed + Buttons */}
             <Box flex="1.5">
               {/* Add Custom Item */}
               <Card bg="#fefae0" borderRadius="xl" mb={8}>
@@ -404,10 +408,11 @@ export default function GroceryListPage() {
                 </CardBody>
               </Card>
 
-              {/* Email button */}
+              {/* Placeholder Email button */}
               <Button
                 size="md"
                 w="100%"
+                mb={4}
                 bgGradient="linear(to-r, #344e41, #588157)"
                 color="white"
                 transition="all 0.3s"
@@ -422,7 +427,7 @@ export default function GroceryListPage() {
                 📧 Email me this grocery list
               </Button>
 
-              {/* Phone button */}
+              {/* Placeholder SMS button */}
               <Button
                 size="md"
                 w="100%"
