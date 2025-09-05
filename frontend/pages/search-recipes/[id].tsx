@@ -228,6 +228,8 @@ export default function SpoonacularRecipeDetails() {
                     );
 
                     alert("Recipe saved!");
+                    // ✅ redirect after success
+                    router.push("http://localhost:3000/recipes/saved-recipes");
                   } catch (err) {
                     console.error("Error saving recipe", err);
                     alert("Failed to save recipe");

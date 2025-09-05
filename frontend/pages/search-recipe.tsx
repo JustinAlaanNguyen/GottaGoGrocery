@@ -14,6 +14,7 @@ import {
   Button,
   HStack,
   Select,
+  Stack,
 } from "@chakra-ui/react";
 import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
@@ -193,9 +194,14 @@ export default function SearchRecipe() {
           transition="all 0.3s ease"
           _focus={{ transform: "scale(1.05)", borderColor: "#cead7f" }}
         />
-        <HStack spacing={6}>
+        <Stack
+          spacing={6}
+          direction={{ base: "column", md: "row" }} // column on mobile, row on desktop
+          w="100%"
+          maxW="800px"
+        >
           <Select
-            minW="220px"
+            flex="1"
             placeholder="Cuisine"
             value={filters.cuisine}
             onChange={(e) =>
@@ -207,8 +213,9 @@ export default function SearchRecipe() {
             <option value="chinese">Chinese</option>
             <option value="indian">Indian</option>
           </Select>
+
           <Select
-            minW="220px"
+            flex="1"
             placeholder="Diet"
             value={filters.diet}
             onChange={(e) => setFilters({ ...filters, diet: e.target.value })}
@@ -217,8 +224,9 @@ export default function SearchRecipe() {
             <option value="vegan">Vegan</option>
             <option value="paleo">Paleo</option>
           </Select>
+
           <Select
-            minW="220px"
+            flex="1"
             placeholder="Intolerances"
             value={filters.intolerances}
             onChange={(e) =>
@@ -235,7 +243,8 @@ export default function SearchRecipe() {
             <option value="tree nut">Tree Nut-Free</option>
             <option value="wheat">Wheat-Free</option>
           </Select>
-        </HStack>
+        </Stack>
+
         <Button
           onClick={() => handleSearch(false)}
           bg="#3c5b3a"

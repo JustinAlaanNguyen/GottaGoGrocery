@@ -2,7 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/saved-searched-recipes/[id]": "pages/saved-searched-recipes/[id].js",
-  "/search-recipe": "pages/search-recipe.js",
-  "/": "pages/index.js"
+  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
+  "/": "pages/index.js",
+  "/recipes/saved-recipes": "pages/recipes/saved-recipes.js",
+  "/saved-searched-recipes/[id]": "pages/saved-searched-recipes/[id].js"
 }

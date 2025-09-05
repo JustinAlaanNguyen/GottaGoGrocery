@@ -28,15 +28,15 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
+    "/recipes/saved-recipes": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/recipes/saved-recipes.js"
+    ],
     "/saved-searched-recipes/[id]": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/saved-searched-recipes/[id].js"
-    ],
-    "/search-recipe": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/search-recipe.js"
     ]
   },
   "ampFirstPages": []
