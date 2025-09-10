@@ -29,6 +29,19 @@ function escapeHtml(s = "") {
  *   items: [{ ingredient, quantity, unit, note, isCustom }]
  * }
  */
+
+function normalizeForSms(text = "") {
+  return text
+    .replace(/•/g, "-") // replace bullets with dashes
+    .replace(/½/g, "1/2") // replace ½ with 1/2
+    .replace(/¼/g, "1/4")
+    .replace(/¾/g, "3/4")
+    .replace(/\bkg lb\b/g, "kg")
+    .replace(/\bg lb\b/g, "lb")
+    .replace(/[ \t]+/g, " ") // collapse spaces/tabs only
+    .trim();
+}
+
 router.post("/email", async (req, res) => {
   try {
     const { userId, recipeId, recipeTitle, items } = req.body;
@@ -106,6 +119,15 @@ router.post("/email", async (req, res) => {
     return res.status(500).json({ error: "Failed to send email" });
   }
 });
+
+function splitMessage(msg, chunkSize = 600) {
+  const parts = [];
+  for (let i = 0; i < msg.length; i += chunkSize) {
+    parts.push(msg.substring(i, i + chunkSize));
+  }
+  return parts;
+}
+
 // send grocery list via SMS
 router.post("/sms", async (req, res) => {
   const { userId, recipeTitle, items } = req.body;
@@ -132,29 +154,42 @@ router.post("/sms", async (req, res) => {
     // format the grocery list
     const listText = items
       .map((i) => {
-        const note = i.note ? ` (${i.note})` : "";
-        return `- ${i.quantity || ""} ${i.unit || ""} ${i.ingredient}${note}`;
+        const qty = normalizeForSms(i.quantity || "");
+        const unit = normalizeForSms(i.unit || "");
+        const ingredient = normalizeForSms(i.ingredient || "");
+        const note = i.note ? ` (${normalizeForSms(i.note)})` : "";
+        return `- ${qty} ${unit} ${ingredient}${note}`;
       })
       .join("\n");
 
-    const message = `🛒 Grocery List for ${recipeTitle}\n\nStill Needed:\n${listText}`;
+    const message = normalizeForSms(
+      `Grocery List for ${recipeTitle}\n\nStill Needed:\n${listText}`
+    );
+
     console.log("📝 SMS message body:\n", message);
 
-    // send SMS via Twilio
-    const twilioResp = await client.messages.create({
-      body: message,
-      from: process.env.TWILIO_PHONE_NUMBER, // your Twilio number
-      to: phone,
-    });
+    // split into safe chunks if needed
+    const parts = splitMessage(message);
+    const results = [];
 
-    console.log("📤 Twilio response:", {
-      sid: twilioResp.sid,
-      status: twilioResp.status,
-      to: twilioResp.to,
-    });
+    for (const [index, part] of parts.entries()) {
+      const twilioResp = await client.messages.create({
+        body:
+          parts.length > 1 ? `(${index + 1}/${parts.length})\n${part}` : part,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phone,
+      });
+      results.push({
+        sid: twilioResp.sid,
+        status: twilioResp.status,
+        index: index + 1,
+      });
+    }
 
     await db.query("UPDATE user SET sentSmsList = 1 WHERE id = ?", [userId]);
-    res.json({ ok: true, sid: twilioResp.sid, status: twilioResp.status });
+
+    // ✅ only respond once
+    res.json({ ok: true, messages: results });
   } catch (err) {
     console.error("❌ Error sending SMS:", err);
     res.json({ ok: false, error: err.message });

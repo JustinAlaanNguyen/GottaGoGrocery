@@ -350,9 +350,9 @@ export default function UserHome() {
             <CardBody textAlign="center">
               <Text fontSize="xl" color="#344e41" fontWeight="600">
                 {customCount + savedCount > 0
-                  ? `You’ve cooked ${customCount + savedCount} recipe${
+                  ? `You have a total of ${customCount + savedCount} recipe${
                       customCount + savedCount > 1 ? "s" : ""
-                    } so far!`
+                    }  saved so far!`
                   : "Start cooking to see your progress here!"}
               </Text>
             </CardBody>

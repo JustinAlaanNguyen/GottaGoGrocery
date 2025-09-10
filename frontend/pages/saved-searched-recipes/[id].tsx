@@ -73,6 +73,18 @@ export default function SavedRecipeDetails() {
     );
   }
 
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this recipe?")) return;
+
+    try {
+      await axios.delete(`http://localhost:5000/api/saved-recipes/${id}`);
+      router.push("/recipes/saved-recipes"); // 👈 adjust to your recipes list route
+    } catch (error) {
+      console.error("Error deleting recipe:", error);
+      alert("Failed to delete recipe. Please try again.");
+    }
+  };
+
   return (
     <Box bg="#ccd5ae" minH="100vh">
       <Navbar />
@@ -202,6 +214,16 @@ export default function SavedRecipeDetails() {
               }
             >
               🛒 Send a grocery list
+            </Button>
+
+            <Button
+              size="lg"
+              bg="red.600"
+              color="white"
+              _hover={{ bg: "red.400", color: "black" }}
+              onClick={handleDelete}
+            >
+              🗑️ Delete Recipe
             </Button>
           </Flex>
         </Box>

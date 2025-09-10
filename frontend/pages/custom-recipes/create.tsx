@@ -28,6 +28,7 @@ import axios from "axios";
 import UnitAutocompleteInput from "../../components/UnitAutocompleteInput";
 import { containsProfanity } from "../../utils/profanityFilter";
 import QuantityUnitInput from "../../components/QuantityUnitInput";
+import { formatQuantity } from "../../utils/formatFraction";
 
 const floatingEmojiAnimation = {
   y: [0, 15, 0, 15, 0],
@@ -144,6 +145,10 @@ export default function CreateCustomRecipePage() {
 
   const [recipeUrl, setRecipeUrl] = useState("");
 
+  const [isExtracting, setIsExtracting] = useState(false);
+
+  const [author, setAuthor] = useState<string | null>(null);
+
   // 🚀 Auth check
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -228,7 +233,10 @@ export default function CreateCustomRecipePage() {
     formData.append("title", title);
     formData.append("recipeDescription", recipeDescription);
     formData.append("serving", serving);
-    formData.append("notes", notes);
+    formData.append(
+      "notes",
+      author ? `Original recipe by ${author}\n\n${notes}` : notes
+    );
 
     // stringify arrays because FormData only supports strings/files
     formData.append("ingredients", JSON.stringify(ingredients));
@@ -254,6 +262,7 @@ export default function CreateCustomRecipePage() {
     }
 
     try {
+      setIsExtracting(true); // 🚀 Start loading animation
       const res = await axios.post(
         "http://localhost:5000/api/custom-recipes/extract",
         { url: recipeUrl }
@@ -265,11 +274,10 @@ export default function CreateCustomRecipePage() {
         data.summary ? data.summary.replace(/<[^>]+>/g, "") : ""
       );
       setServing(data.servings?.toString() || "");
-
       setIngredients(
         (data.extendedIngredients || []).map((ing: any) => ({
           ingredient: ing.name,
-          quantity: ing.amount?.toString() || "",
+          quantity: formatQuantity(ing.amount?.toString() || ""),
           unit: ing.unit || "",
         }))
       );
@@ -280,10 +288,17 @@ export default function CreateCustomRecipePage() {
 
       if (data.image) setImagePreview(data.image);
 
+      // 🚀 Save author info into notes (non-editable part)
+      if (data.creditsText) {
+        setAuthor(data.creditsText);
+      }
+
       toast({ status: "success", title: "Recipe imported!" });
     } catch (err) {
       console.error("Extract failed:", err);
       toast({ status: "error", title: "Could not extract recipe" });
+    } finally {
+      setIsExtracting(false); // 🚀 Stop loading animation
     }
   };
 
@@ -337,23 +352,43 @@ export default function CreateCustomRecipePage() {
               bg="#d4a373"
               color="white"
               _hover={{ bg: "#ccd5ae", color: "black" }}
+              isLoading={isExtracting} // ✅ Chakra has built-in spinner!
+              loadingText="Autofilling..."
             >
               Autofill
             </Button>
           </Flex>
 
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0] || null;
-              setImage(file);
-              if (file) {
-                setImagePreview(URL.createObjectURL(file));
-              }
-            }}
-            bg="white"
-          />
+          <Box>
+            <Input
+              id="recipe-image-upload"
+              type="file"
+              accept="image/*"
+              display="none" // 👈 hides the ugly native input
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setImage(file);
+                if (file) {
+                  setImagePreview(URL.createObjectURL(file));
+                }
+              }}
+            />
+
+            <label htmlFor="recipe-image-upload">
+              <Button
+                as="span" // 👈 so clicking the button triggers the hidden input
+                bg="#d4a373"
+                color="white"
+                _hover={{ bg: "#ccd5ae", color: "black" }}
+              >
+                Upload Image
+              </Button>
+            </label>
+
+            <Text mt={2} fontSize="sm" color="gray.600">
+              {image ? image.name : "No recipe image chosen"}
+            </Text>
+          </Box>
 
           <VStack spacing={6} align="stretch">
             <Input
@@ -567,7 +602,7 @@ export default function CreateCustomRecipePage() {
               (ing, i) =>
                 ing.ingredient && (
                   <li key={i}>
-                    {ing.quantity} {ing.unit} {ing.ingredient}
+                    {formatQuantity(ing.quantity)} {ing.unit} {ing.ingredient}
                   </li>
                 )
             )}
@@ -590,7 +625,26 @@ export default function CreateCustomRecipePage() {
           <Heading size="md" mt={4} color="#344e41">
             Notes
           </Heading>
-          <Text>{notes || "-"}</Text>
+
+          {author && (
+            <Box
+              bg="#e9edc9"
+              p={2}
+              borderRadius="md"
+              fontStyle="italic"
+              fontSize="sm"
+              color="gray.700"
+            >
+              Original recipe by {author}
+            </Box>
+          )}
+
+          <Textarea
+            placeholder="Your notes..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            bg="#faedcd"
+          />
         </MotionBox>
       </Flex>
     </Box>
