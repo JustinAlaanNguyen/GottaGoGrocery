@@ -104,7 +104,11 @@ exports.getUserRecipes = async (req, res) => {
         id: r.id,
         title: r.title,
         type: "custom",
-        image: r.imageUrl ? `${BASE_URL}${r.imageUrl}` : null,
+        image: r.imageUrl
+          ? r.imageUrl.startsWith("http")
+            ? r.imageUrl // already absolute
+            : `${BASE_URL}${r.imageUrl}` // relative path, prefix it
+          : null,
       })),
       ...savedRecipes.map((r) => ({
         id: r.id,

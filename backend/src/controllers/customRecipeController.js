@@ -8,7 +8,9 @@ exports.createCustomRecipe = async (req, res) => {
     req.body;
 
   // multer will attach file info
-  const imageUrl = req.file ? `/uploads/recipes/${req.file.filename}` : null;
+  const imageUrl = req.file
+    ? `/uploads/recipes/${req.file.filename}`
+    : req.body.imageUrl || null;
 
   if (!userId || !title || !ingredients || !steps) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -100,7 +102,11 @@ exports.getCustomRecipeById = async (req, res) => {
     if (!recipe) return res.status(404).json({ message: "Not found" });
 
     // ✅ Add full URL for image
-    recipe.imageUrl = recipe.imageUrl ? `${BASE_URL}${recipe.imageUrl}` : null;
+    recipe.imageUrl = recipe.imageUrl
+      ? recipe.imageUrl.startsWith("http")
+        ? recipe.imageUrl // already full URL
+        : `${BASE_URL}${recipe.imageUrl}` // stored relative
+      : null;
 
     const [ingredients] = await db.query(
       "SELECT id, ingredient, quantity, unit FROM customrecipeingredient WHERE custRecipId = ?",
@@ -120,7 +126,7 @@ exports.getCustomRecipeById = async (req, res) => {
       ingredients,
       steps,
       notes: recipe.notes,
-      image: recipe.imageUrl, // 👈 make it consistent with frontend
+      image: recipe.imageUrl, // 👈 consistent with frontend
     });
   } catch (err) {
     console.error("Fetch customRecipe:", err);

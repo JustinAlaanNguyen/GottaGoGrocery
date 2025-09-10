@@ -142,6 +142,8 @@ export default function CreateCustomRecipePage() {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  const [recipeUrl, setRecipeUrl] = useState("");
+
   // 🚀 Auth check
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -233,7 +235,9 @@ export default function CreateCustomRecipePage() {
     formData.append("steps", JSON.stringify(steps));
 
     if (image) {
-      formData.append("image", image);
+      formData.append("image", image); // user uploaded file
+    } else if (imagePreview) {
+      formData.append("imageUrl", imagePreview); // extracted image URL
     }
 
     await axios.post("http://localhost:5000/api/custom-recipes", formData, {
@@ -242,6 +246,45 @@ export default function CreateCustomRecipePage() {
 
     toast({ status: "success", title: "Recipe created!" });
     router.push("/recipes/saved-recipes");
+  };
+
+  const handleExtractFromUrl = async () => {
+    if (!recipeUrl.trim()) {
+      return toast({ status: "warning", title: "Enter a recipe URL first" });
+    }
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/custom-recipes/extract",
+        { url: recipeUrl }
+      );
+      const data = res.data;
+
+      setTitle(data.title || "");
+      setRecipeDescription(
+        data.summary ? data.summary.replace(/<[^>]+>/g, "") : ""
+      );
+      setServing(data.servings?.toString() || "");
+
+      setIngredients(
+        (data.extendedIngredients || []).map((ing: any) => ({
+          ingredient: ing.name,
+          quantity: ing.amount?.toString() || "",
+          unit: ing.unit || "",
+        }))
+      );
+
+      setSteps(
+        data.analyzedInstructions?.[0]?.steps.map((s: any) => s.step) || []
+      );
+
+      if (data.image) setImagePreview(data.image);
+
+      toast({ status: "success", title: "Recipe imported!" });
+    } catch (err) {
+      console.error("Extract failed:", err);
+      toast({ status: "error", title: "Could not extract recipe" });
+    }
   };
 
   return (
@@ -277,6 +320,27 @@ export default function CreateCustomRecipePage() {
           <Heading mb={6} color="#344e41">
             Create a Custom Recipe 💡
           </Heading>
+
+          <Heading fontSize="md" color="#344e41">
+            Have a recipe already? Import Recipe from a link!
+          </Heading>
+          <Flex gap={2} mb={4}>
+            <Input
+              fontStyle={"italic"}
+              placeholder="Paste recipe link here..."
+              value={recipeUrl}
+              onChange={(e) => setRecipeUrl(e.target.value)}
+              bg="white"
+            />
+            <Button
+              onClick={handleExtractFromUrl}
+              bg="#d4a373"
+              color="white"
+              _hover={{ bg: "#ccd5ae", color: "black" }}
+            >
+              Autofill
+            </Button>
+          </Flex>
 
           <Input
             type="file"

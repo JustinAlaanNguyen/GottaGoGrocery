@@ -2,9 +2,9 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/saved-searched-recipes/[id]/grocery-list": "pages/saved-searched-recipes/[id]/grocery-list.js",
-  "/recipes/saved-recipes": "pages/recipes/saved-recipes.js",
-  "/api/grocery-list/email": "pages/api/grocery-list/email.js",
+  "/custom-recipes": "pages/custom-recipes.js",
+  "/custom-recipes/[id]": "pages/custom-recipes/[id].js",
   "/custom-recipes/[id]/grocery-list": "pages/custom-recipes/[id]/grocery-list.js",
-  "/custom-recipes/[id]": "pages/custom-recipes/[id].js"
+  "/api/grocery-list/email": "pages/api/grocery-list/email.js",
+  "/recipes/saved-recipes": "pages/recipes/saved-recipes.js"
 }
