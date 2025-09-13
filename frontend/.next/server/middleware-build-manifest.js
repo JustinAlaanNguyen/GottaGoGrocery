@@ -25,6 +25,7 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
+<<<<<<< HEAD
     "/account/signin": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
@@ -34,6 +35,12 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/account/signup.js"
+=======
+    "/custom-recipes/[id]/grocery-list": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/custom-recipes/[id]/grocery-list.js"
+>>>>>>> baceb4d93cf15de923b45835bc79cc46b505c405
     ]
   },
   "ampFirstPages": []
