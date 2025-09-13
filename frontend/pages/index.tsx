@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import NextLink from "next/link";
 
+const MotionText = motion(Text);
 const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);
 
+// 🌊 Floating animation for circles
 const floatingAnimation = {
   y: [0, -10, 0, 10, 0],
   scale: [1, 1.05, 1, 1.08, 1],
@@ -17,13 +19,197 @@ const floatingAnimation = {
   },
 };
 
+// 🌿 Branch + Leaf component (relative to phone)
+const BranchWithLeaf = ({
+  branchTop,
+  branchLeft,
+  branchWidth,
+  branchRotate,
+  branchGradient,
+  leafTop,
+  leafLeft,
+  leafWidth,
+  leafRotate,
+  swayRange,
+}: {
+  branchTop: string;
+  branchLeft: string;
+  branchWidth: string;
+  branchRotate: number;
+  branchGradient: string;
+  leafTop: string;
+  leafLeft: string;
+  leafWidth: string;
+  leafRotate: number;
+  swayRange: number[];
+}) => (
+  <>
+    {/* 🍃 Leaf */}
+    <MotionBox
+      position="absolute"
+      width={leafWidth}
+      height="30px"
+      bg="#2d452c"
+      borderRadius="50%"
+      top={leafTop}
+      left={leafLeft}
+      style={{
+        transformOrigin: "right center",
+        transform: `rotate(${leafRotate}deg)`,
+      }}
+      zIndex={1}
+      animate={{ rotate: swayRange }}
+      transition={{
+        duration: 10,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+    />
+    {/* 🌿 Branch */}
+    <MotionBox
+      position="absolute"
+      width={branchWidth}
+      height="1px"
+      borderRadius="full"
+      top={branchTop}
+      left={branchLeft}
+      style={{
+        transformOrigin: "right center",
+        transform: `rotate(${branchRotate}deg)`,
+      }}
+      zIndex={1}
+      bgGradient={branchGradient}
+      animate={{ rotate: swayRange }}
+      transition={{
+        duration: 10,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+    />
+  </>
+);
+
 const HomePage: React.FC = () => {
   return (
     <Box bg="#ccd5ae" minH="100vh" position="relative" overflow="hidden">
       <Navbar />
 
+      {/* ✅ Mobile View */}
       <MotionFlex
-        direction={{ base: "column", md: "row" }}
+        display={{ base: "flex", md: "none" }}
+        direction="column"
+        align="center"
+        justify="center"
+        maxW="full"
+        mx="auto"
+        px={8}
+        py={16}
+        textAlign="center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        bgGradient="linear(to-b, #ccd5ae, #e9edc9)"
+        position="relative"
+      >
+        {/* 🎈 Floating Circle Top-Left */}
+        <MotionBox
+          position="absolute"
+          w="180px"
+          h="180px"
+          borderRadius="full"
+          bg="#faedcd"
+          bottom="69%"
+          right="65%"
+          style={{ transform: "translate(-50%, -50%)" }}
+          zIndex={0}
+          animate={floatingAnimation}
+        />
+
+        {/* 🎈 Floating Circle Bottom-Right */}
+        <MotionBox
+          position="absolute"
+          w="220px"
+          h="220px"
+          borderRadius="full"
+          bg="#cead7f"
+          bottom="0%"
+          right="-15%"
+          style={{ transform: "translate(50%, 50%)" }}
+          zIndex={0}
+          animate={floatingAnimation}
+        />
+
+        {/* 🍞 Subtle Grocery Emoji Watermarks */}
+        <MotionText
+          position="absolute"
+          fontSize="10rem"
+          bottom="-5%"
+          right="-12%"
+          opacity={0.5}
+          zIndex={0}
+          animate={floatingAnimation}
+        >
+          🥖
+        </MotionText>
+        <MotionText
+          position="absolute"
+          fontSize="4rem"
+          bottom="85%"
+          right="69%"
+          opacity={0.5}
+          zIndex={0}
+          animate={floatingAnimation}
+        >
+          🍅
+        </MotionText>
+        <MotionText
+          position="absolute"
+          fontSize="4rem"
+          bottom="69%"
+          right="80%"
+          opacity={0.5}
+          zIndex={0}
+          animate={floatingAnimation}
+        >
+          🥬
+        </MotionText>
+
+        {/* ✅ Content */}
+        <Heading
+          as="h1"
+          fontSize="4xl"
+          color="#344e41"
+          mb={8}
+          lineHeight="1.2"
+          zIndex={1}
+        >
+          Get Your Grocery List Sorted
+        </Heading>
+        <Text fontSize="lg" color="#344e41" mb={12} zIndex={1}>
+          Simplify your meal planning and grocery shopping by searching for
+          recipes and sending the ingredients to your phone.
+        </Text>
+        <NextLink href="/account/signup">
+          <Button
+            size="lg"
+            bg="#d4a373"
+            color="white"
+            fontSize="xl"
+            px={8}
+            py={6}
+            zIndex={1}
+            borderRadius="full"
+            _hover={{ bg: "#faedcd", color: "#344e41" }}
+          >
+            Get Started
+          </Button>
+        </NextLink>
+      </MotionFlex>
+
+      {/* ✅ Desktop/Laptop View */}
+      <MotionFlex
+        display={{ base: "none", md: "flex" }}
+        direction="row"
         align="center"
         justify="space-between"
         maxW="7xl"
@@ -37,8 +223,7 @@ const HomePage: React.FC = () => {
         {/* Left Side */}
         <MotionBox
           flex="1"
-          pr={{ base: 0, md: 24 }}
-          mb={{ base: 24, md: 0 }}
+          pr={{ md: 24 }}
           initial={{ x: -100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -72,7 +257,7 @@ const HomePage: React.FC = () => {
           </NextLink>
         </MotionBox>
 
-        {/* Right Side */}
+        {/* Right Side (Phone + Leaves) */}
         <MotionBox
           flex="1"
           display="flex"
@@ -83,7 +268,7 @@ const HomePage: React.FC = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-          {/* Animated circles behind */}
+          {/* 🎨 Animated Background Circles */}
           <MotionBox
             position="absolute"
             w="400px"
@@ -120,215 +305,52 @@ const HomePage: React.FC = () => {
             zIndex={0}
             animate={floatingAnimation}
           />
-          {/* 🌿 Animated Branches */}\{/* 🍃 Leaf attached to Branch 1 */}
-          <MotionBox
-            position="absolute"
-            width="80px" // width of the ellipse
-            height="30px" // height of the ellipse
-            bg="#2d452c" // leaf color
-            borderRadius="50%" // makes it elliptical
-            top="67%"
-            left="6.5%"
-            style={{
-              transformOrigin: "right center", // sway around the attachment point
-              // shift the leaf slightly so it appears around the branch's colored part
-              transform: "translate(-10px, -50%) rotate(-45deg)",
-            }}
-            zIndex={0}
-            animate={{
-              rotate: [50, 45, 50, 45, 50],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          {/* Branch 1 */}
-          <MotionBox
-            position="absolute"
-            width="50px"
-            height="1px"
-            bg="#9c9a9aff"
-            borderRadius="full"
-            top="69%"
-            left="13%"
-            style={{
-              transformOrigin: "right center",
-              transform: "translate(-50%, -50%) rotate(-45deg)", // angled higher
-            }}
-            zIndex={0}
-            animate={{
-              rotate: [45, 40, 45, 40, 45], // oscillate around -45°
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          {/* 🍃 Leaf attached to Branch 2 */}
-          <MotionBox
-            position="absolute"
-            width="90px" // width of the ellipse
-            height="30px" // height of the ellipse
-            bg="#2d452c" // leaf color
-            borderRadius="50%" // makes it elliptical
-            top="58.5%" // same top as branch to align
-            left="3.5%" // same left as branch
-            style={{
-              transformOrigin: "right center", // sway around the attachment point
-              // shift the leaf slightly so it appears around the branch's colored part
-              transform: "translate(-10px, -50%) rotate(-45deg)",
-            }}
-            zIndex={0}
-            animate={{
-              rotate: [70, 62, 70, 62, 70], // same as branch
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          {/* Branch 2 */}
-          <MotionBox
-            position="absolute"
-            width="60px"
-            height="1px"
-            borderRadius="full"
-            top="65%"
-            left="11%"
-            style={{
-              transformOrigin: "right center",
-              transform: "translate(-50%, -50%) rotate(-45deg)",
-            }}
-            zIndex={0}
-            bgGradient="linear(to-r, #9c9a9aff 60%,  black 40%)"
-            animate={{
-              rotate: [69, 65, 69, 65, 69],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          {/* 🍃 Leaf attached to Branch 3 */}
-          <MotionBox
-            position="absolute"
-            width="100px" // width of the ellipse
-            height="30px" // height of the ellipse
-            bg="#2d452c" // leaf color
-            borderRadius="50%" // makes it elliptical
-            top="35%" // same top as branch to align
-            left="61.5%" // same left as branch
-            style={{
-              transformOrigin: "right center", // sway around the attachment point
-              // shift the leaf slightly so it appears around the branch's colored part
-              transform: "translate(-10px, -50%) rotate(-45deg)",
-            }}
-            zIndex={0}
-            animate={{
-              rotate: [130, 135, 130, 135, 130], // same as branch
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          {/* Branch 3 */}
-          <MotionBox
-            position="absolute"
-            width="90px"
-            height="1px"
-            bg="black"
-            borderRadius="full"
-            top="40%"
-            left="61%"
-            style={{
-              transformOrigin: "right center",
-              transform: "translate(-50%, -50%) rotate(-90deg)", // angled higher
-            }}
-            zIndex={0}
-            bgGradient="linear(to-r, #9c9a9aff 78%,  black 22%)"
-            animate={{
-              rotate: [130, 135, 130, 135, 130], // oscillate around -45°
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          {/* 🍃 Leaf attached to Branch 4 */}
-          <MotionBox
-            position="absolute"
-            width="100px" // width of the ellipse
-            height="30px" // height of the ellipse
-            bg="#2d452c" // leaf color
-            borderRadius="50%" // makes it elliptical
-            top="27%" // same top as branch to align
-            left="61%" // same left as branch
-            style={{
-              transformOrigin: "right center", // sway around the attachment point
-              // shift the leaf slightly so it appears around the branch's colored part
-              transform: "translate(-10px, -50%) rotate(-45deg)",
-            }}
-            zIndex={0}
-            animate={{
-              rotate: [100, 95, 100, 95, 100], // same as branch
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          {/* Branch 4 */}
-          <MotionBox
-            position="absolute"
-            width="90px"
-            height="1px"
-            bg="black"
-            borderRadius="full"
-            top="35%"
-            left="62%"
-            style={{
-              transformOrigin: "right center",
-              transform: "translate(-50%, -50%) rotate(-45deg)", // angled higher
-            }}
-            zIndex={0}
-            bgGradient="linear(to-r, #9c9a9aff 60%,  black 40%)"
-            animate={{
-              rotate: [100, 95, 100, 95, 100], // oscillate around -45°
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          {/* 📱 Phone Image */}
-          <Box
-            border="10px solid #e9edc9"
-            borderRadius="4xl"
-            rounded={50}
-            overflow="hidden"
-            boxShadow="xl"
-            maxW="300px"
-            maxH="600px"
-            aspectRatio={9 / 16}
-            zIndex={1}
-          >
-            <Image
-              src="/phonepic2.png"
-              alt="Phone Preview"
-              objectFit="cover"
-              w="100%"
-              h="100%"
+
+          {/* 📱 Phone Wrapper (relative, NO overflow clipping) */}
+          <Box position="relative" w={{ md: "260px", lg: "300px" }} zIndex={2}>
+            {/* 🌿 Leaves attached to phone */}
+            <BranchWithLeaf
+              branchTop="20%"
+              branchLeft="-60px"
+              branchWidth="60px"
+              branchRotate={-45}
+              branchGradient="linear(to-r, #9c9a9aff 60%, black 40%)"
+              leafTop="14%"
+              leafLeft="-100px"
+              leafWidth="90px"
+              leafRotate={-45}
+              swayRange={[70, 62, 70, 62, 70]}
             />
+            <BranchWithLeaf
+              branchTop="80%"
+              branchLeft="80%"
+              branchWidth="60px"
+              branchRotate={135}
+              branchGradient="linear(to-r, #9c9a9aff 60%, black 40%)"
+              leafTop="74.4%"
+              leafLeft="75%"
+              leafWidth="90px"
+              leafRotate={135}
+              swayRange={[135, 125, 135, 125, 135]}
+            />
+
+            {/* 📱 Actual Phone (inside wrapper) */}
+            <Box
+              border="10px solid #e9edc9"
+              borderRadius="50px"
+              overflow="hidden"
+              boxShadow="xl"
+              aspectRatio={9 / 16}
+              w="full"
+            >
+              <Image
+                src="/phonepic2.png"
+                alt="Phone Preview"
+                objectFit="cover"
+                w="100%"
+                h="100%"
+              />
+            </Box>
           </Box>
         </MotionBox>
       </MotionFlex>

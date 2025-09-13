@@ -29,7 +29,6 @@ const floatingAnimation = {
   },
 };
 
-// Fruit emojis for background
 const fruitEmojis = ["🍎", "🍓", "🍍"];
 
 const SignIn = (): React.ReactElement => {
@@ -146,169 +145,153 @@ const SignIn = (): React.ReactElement => {
         {fruits}
       </Box>
 
-      <motion.div
-        style={{
-          transform: "scale(0.75)",
-          transformOrigin: "top center",
-        }}
+      {/* Sign-in card */}
+      <MotionFlex
+        align="center"
+        justify="center"
+        minH="calc(100vh - 80px)"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+        zIndex={1}
       >
-        {/* Leaf & branch accents */}
         <MotionBox
-          position="absolute"
-          width="90px"
-          height="30px"
-          bg="#2d452c"
-          borderRadius="50%"
-          top="40vh"
-          left="33.1vw"
-          style={{
-            transformOrigin: "right center",
-            transform: "translate(-10px, -50%) rotate(-45deg)",
-          }}
-          zIndex={0}
-          animate={{ rotate: [70, 62, 70, 62, 70] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <MotionBox
-          position="absolute"
-          width="60px"
-          height="1px"
-          borderRadius="full"
-          top="44vh"
-          left="35.3vw"
-          style={{
-            transformOrigin: "right center",
-            transform: "translate(-50%, -50%) rotate(-45deg)",
-          }}
-          zIndex={0}
-          bgGradient="linear(to-r, #dbd8d8 60%, black 40%)"
-          animate={{ rotate: [69, 65, 69, 65, 69] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <MotionBox
-          position="absolute"
-          width="90px"
-          height="30px"
-          bg="#2d452c"
-          borderRadius="50%"
-          top="55vh"
-          left="57.6vw"
-          style={{
-            transformOrigin: "right center",
-            transform: "translate(-10px, -50%) rotate(-45deg)",
-          }}
-          zIndex={0}
-          animate={{ rotate: [135, 125, 135, 125, 135] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <MotionBox
-          position="absolute"
-          width="60px"
-          height="1px"
-          borderRadius="full"
-          top="58vh"
-          left="58.5vw"
-          style={{
-            transformOrigin: "right center",
-            transform: "translate(-50%, -50%) rotate(-45deg)",
-          }}
-          zIndex={0}
-          bgGradient="linear(to-r, #dbd8d8 60%, black 40%)"
-          animate={{ rotate: [135, 127, 135, 127, 135] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-
-        {/* Sign-in card */}
-        <MotionFlex
-          align="center"
-          justify="center"
-          minH="calc(100vh - 80px)"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          zIndex={1}
+          position="relative"
+          bg="whiteAlpha.800"
+          backdropFilter="blur(10px)"
+          p={{ base: 3, sm: 4, md: 6 }} // less padding
+          borderRadius="2xl" // smaller radius if you want
+          boxShadow="xl" // softer shadow
+          maxW={{ base: "70%", sm: "xs", md: "sm" }} // narrower widths
+          w="full"
+          animate={shake ? { x: [-10, 10, -10, 10, 0] } : {}}
+          transition={{ duration: 0.4 }}
         >
+          {/* 🌿 Leaf accents */}
           <MotionBox
-            bg="whiteAlpha.800"
-            backdropFilter="blur(10px)"
-            p={8}
-            borderRadius="3xl"
-            boxShadow="2xl"
-            maxW="md"
-            w="full"
-            animate={shake ? { x: [-10, 10, -10, 10, 0] } : {}}
-            transition={{ duration: 0.4 }}
+            position="absolute"
+            width="90px"
+            height="30px"
+            bg="#2d452c"
+            borderRadius="50%"
+            top="45px"
+            left="-70px"
+            style={{ transform: "rotate(-45deg)" }}
+            zIndex={0}
+            animate={{ rotate: [70, 62, 70, 62, 70] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <MotionBox
+            position="absolute"
+            width="60px"
+            height="1px"
+            borderRadius="full"
+            top="90px"
+            left="-40px"
+            zIndex={0}
+            bgGradient="linear(to-r, #dbd8d8 60%, black 40%)"
+            animate={{ rotate: [69, 65, 69, 65, 69] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <MotionBox
+            position="absolute"
+            width="90px"
+            height="30px"
+            bg="#2d452c"
+            borderRadius="50%"
+            bottom="115px"
+            right="-90px"
+            style={{ transform: "rotate(135deg)" }}
+            zIndex={0}
+            animate={{ rotate: [135, 125, 135, 125, 135] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <MotionBox
+            position="absolute"
+            width="60px"
+            height="1px"
+            borderRadius="full"
+            bottom="100px"
+            right="-50px"
+            bgGradient="linear(to-r, #dbd8d8 60%, black 40%)"
+            animate={{ rotate: [135, 127, 135, 127, 135] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* 📋 Form content */}
+          <Heading
+            as="h2"
+            fontSize={{ base: "3xl", sm: "4xl", md: "5xl" }}
+            textAlign="center"
+            mb={8}
           >
-            <Heading as="h2" fontSize="5xl" textAlign="center" mb={10}>
-              Sign In
-            </Heading>
+            Sign In
+          </Heading>
 
-            <VStack spacing={6}>
-              <Input
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                size="lg"
-                fontSize="2xl"
-              />
-              <Input
-                placeholder="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                size="lg"
-                fontSize="2xl"
-              />
-              <MotionBox
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+          <VStack spacing={6}>
+            <Input
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              size={{ base: "md", md: "lg" }}
+              fontSize={{ base: "lg", md: "2xl" }}
+            />
+            <Input
+              placeholder="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              size={{ base: "md", md: "lg" }}
+              fontSize={{ base: "lg", md: "2xl" }}
+            />
+
+            <MotionBox
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              w="full"
+            >
+              <Button
+                bg="#3c5b3a"
+                color="white"
+                fontSize={{ base: "lg", md: "2xl" }}
+                py={{ base: 6, md: 8 }}
                 w="full"
+                borderRadius="full"
+                _hover={{ bg: "#2d452c" }}
+                onClick={handleSubmit}
+                isLoading={isSubmitting}
+                loadingText="Signing in"
+                isDisabled={isSubmitting}
               >
-                <Button
-                  bg="#3c5b3a"
-                  color="white"
-                  fontSize="2xl"
-                  py={8}
-                  w="full"
-                  borderRadius="full"
-                  _hover={{ bg: "#2d452c" }}
-                  onClick={handleSubmit}
-                  isLoading={isSubmitting}
-                  loadingText="Signing in"
-                  isDisabled={isSubmitting}
-                >
-                  Sign In
-                </Button>
-              </MotionBox>
+                Sign In
+              </Button>
+            </MotionBox>
 
-              {message && (
-                <Text
-                  color={
-                    message.includes("successful") ? "green.500" : "red.500"
-                  }
-                  fontSize="lg"
-                  textAlign="center"
-                >
-                  {message}
-                </Text>
-              )}
-
-              <Text mt={6} fontSize="lg" color="gray.700" textAlign="center">
-                Don’t have an account?{" "}
-                <ChakraLink
-                  as={NextLink}
-                  href="/account/signup"
-                  color="#3c5b3a"
-                  fontWeight="bold"
-                  _hover={{ textDecoration: "underline" }}
-                >
-                  Sign Up
-                </ChakraLink>
+            {message && (
+              <Text
+                color={message.includes("successful") ? "green.500" : "red.500"}
+                fontSize="lg"
+                textAlign="center"
+              >
+                {message}
               </Text>
-            </VStack>
-          </MotionBox>
-        </MotionFlex>
-      </motion.div>
+            )}
+
+            <Text mt={6} fontSize="lg" color="gray.700" textAlign="center">
+              Don’t have an account?{" "}
+              <ChakraLink
+                as={NextLink}
+                href="/account/signup"
+                color="#3c5b3a"
+                fontWeight="bold"
+                _hover={{ textDecoration: "underline" }}
+              >
+                Sign Up
+              </ChakraLink>
+            </Text>
+          </VStack>
+        </MotionBox>
+      </MotionFlex>
     </Box>
   );
 };
