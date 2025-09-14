@@ -195,7 +195,7 @@ export default function UserHome() {
         {/* Greeting */}
         <MotionBox {...fadeInUp}>
           <Heading as="h1" fontSize="6xl" mb={2} color="#344e41">
-            Hi {username}! 👋 Lets get cooking!
+            Hi {username}! Lets get cooking!
           </Heading>
         </MotionBox>
 

@@ -125,7 +125,7 @@ export default function EditCustomRecipePage() {
   const [recipeDescription, setRecipeDescription] = useState("");
   const [serving, setServing] = useState("");
   const [ingredients, setIngredients] = useState([
-    { ingredient: "", quantity: "", unit: "" },
+    { id: Date.now(), ingredient: "", quantity: "", unit: "" },
   ]);
   const [steps, setSteps] = useState([""]);
   const [notes, setNotes] = useState("");
@@ -158,8 +158,11 @@ export default function EditCustomRecipePage() {
         setServing(data.serving || "");
         setIngredients(
           data.ingredients?.length
-            ? data.ingredients
-            : [{ ingredient: "", quantity: "", unit: "" }]
+            ? data.ingredients.map((ing: any) => ({
+                id: Date.now() + Math.random(), // ✅ unique id
+                ...ing,
+              }))
+            : [{ id: Date.now(), ingredient: "", quantity: "", unit: "" }]
         );
         setSteps(data.steps?.map((s: any) => s.description) || [""]);
         setNotes(data.notes || "");
@@ -200,10 +203,10 @@ export default function EditCustomRecipePage() {
   const addIngredient = () =>
     setIngredients([
       ...ingredients,
-      { ingredient: "", quantity: "", unit: "" },
+      { id: Date.now(), ingredient: "", quantity: "", unit: "" },
     ]);
-  const deleteIngredient = (i: number) =>
-    setIngredients(ingredients.filter((_, idx) => idx !== i));
+  const deleteIngredient = (id: number) =>
+    setIngredients(ingredients.filter((item) => item.id !== id));
   const addStep = () => setSteps([...steps, ""]);
   const deleteStep = (i: number) =>
     setSteps(steps.filter((_, idx) => idx !== i));
@@ -273,7 +276,10 @@ export default function EditCustomRecipePage() {
 
           <VStack spacing={6} align="stretch">
             <Box>
-              <Text fontWeight="bold">Recipe Image</Text>
+              <Text fontWeight="bold" mb={2}>
+                Recipe Image
+              </Text>
+
               {preview && (
                 <Box mb={3}>
                   <img
@@ -283,9 +289,13 @@ export default function EditCustomRecipePage() {
                   />
                 </Box>
               )}
+
+              {/* Custom file upload button */}
               <Input
+                id="image-upload"
                 type="file"
                 accept="image/*"
+                display="none"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
                     setImage(e.target.files[0]);
@@ -293,6 +303,17 @@ export default function EditCustomRecipePage() {
                   }
                 }}
               />
+              <Button
+                as="label"
+                htmlFor="image-upload"
+                bg="#d4a373"
+                color="white"
+                size="sm"
+                _hover={{ bg: "#344e41" }}
+                cursor="pointer"
+              >
+                {preview ? "🖼️ Replace Recipe Image" : "📸 Upload Recipe Image"}
+              </Button>
             </Box>
 
             <Input
@@ -326,39 +347,47 @@ export default function EditCustomRecipePage() {
               Ingredients
             </Heading>
             <AnimatePresence>
-              {ingredients.map((ing, i) => (
+              {ingredients.map((ing) => (
                 <MotionBox
-                  key={i}
+                  key={ing.id} // ✅ use persistent id instead of index
                   as={SimpleGrid}
-                  columns={3}
+                  columns={{ base: 1, sm: 2, md: 3 }}
                   spacing={3}
                   alignItems="center"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                 >
-                  {/* Quantity + Unit merged */}
                   <QuantityUnitInput
                     value={{ quantity: ing.quantity, unit: ing.unit }}
                     onChange={(val) => {
-                      const updated = [...ingredients];
-                      updated[i].quantity = val.quantity;
-                      updated[i].unit = val.unit;
-                      setIngredients(updated);
+                      setIngredients((prev) =>
+                        prev.map((item) =>
+                          item.id === ing.id
+                            ? {
+                                ...item,
+                                quantity: val.quantity,
+                                unit: val.unit,
+                              }
+                            : item
+                        )
+                      );
                     }}
                   />
 
-                  {/* Ingredient with autocomplete */}
                   <IngredientAutocompleteInput
                     value={ing.ingredient}
                     onChange={(val) => {
-                      const updated = [...ingredients];
-                      updated[i].ingredient = val;
-                      setIngredients(updated);
+                      setIngredients((prev) =>
+                        prev.map((item) =>
+                          item.id === ing.id
+                            ? { ...item, ingredient: val }
+                            : item
+                        )
+                      );
                     }}
                   />
 
-                  {/* Delete button */}
                   <IconButton
                     aria-label="Delete"
                     icon={<CloseIcon />}
@@ -366,11 +395,12 @@ export default function EditCustomRecipePage() {
                     bg="#a32c2c"
                     color="white"
                     _hover={{ bg: "#611b1b" }}
-                    onClick={() => deleteIngredient(i)}
+                    onClick={() => deleteIngredient(ing.id)}
                   />
                 </MotionBox>
               ))}
             </AnimatePresence>
+
             <Button
               size="sm"
               onClick={addIngredient}

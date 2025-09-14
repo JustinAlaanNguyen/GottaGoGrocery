@@ -240,19 +240,23 @@ export default function GroceryListPage() {
             For: <b>{recipeTitle}</b>
           </Text>
 
-          {/* Two-column layout */}
-          <Flex align="flex-start" gap={8}>
+          {/* Two-column layout, responsive */}
+          <Flex
+            align="flex-start"
+            gap={8}
+            direction={{ base: "column", md: "row" }} // ✅ stack on mobile
+          >
             {/* LEFT COLUMN: Ingredients */}
-            <Box flex="1">
+            <Box flex="1" w="100%">
               <Heading as="h2" fontSize="xl" mb={4} color="#344e41">
                 📝 Ingredients
               </Heading>
               <VStack
                 align="stretch"
                 spacing={4}
-                maxH="600px"
-                overflowY="auto"
-                pr={2}
+                maxH={{ base: "none", md: "600px" }} // ✅ scroll only on desktop
+                overflowY={{ base: "visible", md: "auto" }}
+                pr={{ base: 0, md: 2 }}
               >
                 {ingredients.map((ing) => (
                   <Card
@@ -267,17 +271,23 @@ export default function GroceryListPage() {
                     }
                     boxShadow="sm"
                     transition="all 0.2s"
-                    _hover={{ transform: "scale(1.02)", boxShadow: "md" }}
+                    _hover={{
+                      transform: { md: "scale(1.02)" },
+                      boxShadow: "md",
+                    }}
                   >
                     <CardBody py={3}>
-                      <HStack justify="space-between" align="start">
+                      <HStack
+                        justify="space-between"
+                        align="start"
+                        spacing={2}
+                        wrap="wrap" // ✅ prevent overlap on small screens
+                      >
                         <Checkbox
                           colorScheme="green"
-                          size="lg"
+                          size="md"
                           isChecked={ing.checked}
                           onChange={() => toggleCheck(ing.id)}
-                          transition="transform 0.15s"
-                          _checked={{ transform: "scale(1.1)" }}
                         >
                           <Text
                             as={ing.crossed ? "s" : "span"}
@@ -302,28 +312,18 @@ export default function GroceryListPage() {
                           variant="ghost"
                           colorScheme="red"
                           onClick={() => toggleCross(ing.id)}
-                          transition="all 0.2s"
-                          _hover={{
-                            transform: "rotate(90deg)",
-                            color: "red.500",
-                          }}
                         />
                       </HStack>
 
                       {/* Note field */}
                       <Input
                         mt={2}
-                        placeholder="Add note (e.g. have half at home)"
+                        placeholder="Add note..."
                         size="sm"
                         value={ing.note}
                         onChange={(e) => updateNote(ing.id, e.target.value)}
                         bg="white"
                         disabled={ing.crossed}
-                        transition="border 0.2s, box-shadow 0.2s"
-                        _focus={{
-                          borderColor: "green.400",
-                          boxShadow: "0 0 0 1px green",
-                        }}
                       />
                     </CardBody>
                   </Card>
@@ -331,14 +331,14 @@ export default function GroceryListPage() {
               </VStack>
             </Box>
 
-            {/* RIGHT COLUMN: Custom item + Still Needed + Email */}
-            <Box flex="1.5">
+            {/* RIGHT COLUMN */}
+            <Box flex="1.5" w="100%">
               {/* Add Custom Item */}
               <Card bg="#fefae0" borderRadius="xl" mb={8}>
                 <CardBody>
-                  <HStack>
+                  <HStack spacing={2} flexDir={{ base: "column", sm: "row" }}>
                     <Input
-                      placeholder="Add custom item to the list..."
+                      placeholder="Add custom item..."
                       value={newItem}
                       onChange={(e) => setNewItem(e.target.value)}
                       bg="gray.50"
@@ -347,9 +347,7 @@ export default function GroceryListPage() {
                       leftIcon={<AddIcon />}
                       colorScheme="green"
                       onClick={addCustomItem}
-                      padding={"5"}
-                      transition="all 0.2s"
-                      _hover={{ transform: "scale(1.05)", bg: "green.500" }}
+                      w={{ base: "100%", sm: "auto" }} // ✅ full width on mobile
                     >
                       Add to list
                     </Button>
@@ -366,14 +364,7 @@ export default function GroceryListPage() {
                   {neededIngredients.length > 0 ? (
                     <VStack align="start" spacing={2}>
                       {neededIngredients.map((ing) => (
-                        <Text
-                          key={ing.id}
-                          transition="all 0.2s"
-                          _hover={{
-                            color: "green.600",
-                            transform: "translateX(5px)",
-                          }}
-                        >
+                        <Text key={ing.id}>
                           • {ing.quantity ? `${ing.quantity} ` : ""}
                           {ing.unit ? `${ing.unit} ` : ""}
                           {ing.ingredient}
@@ -404,41 +395,27 @@ export default function GroceryListPage() {
                 </CardBody>
               </Card>
 
-              {/* Email button */}
-              <Button
-                size="md"
-                w="100%"
-                mb={4}
-                bgGradient="linear(to-r, #344e41, #588157)"
-                color="white"
-                transition="all 0.3s"
-                _hover={{
-                  transform: "scale(1.03)",
-                  bgGradient: "linear(to-r, #ccd5ae, #a3b18a)",
-                  color: "black",
-                }}
-                isLoading={sendingEmail}
-                onClick={handleEmailClick}
-              >
-                📧 Email me this grocery list
-              </Button>
+              {/* Action Buttons */}
+              <VStack spacing={4}>
+                <Button
+                  w="100%"
+                  bgGradient="linear(to-r, #344e41, #588157)"
+                  color="white"
+                  isLoading={sendingEmail}
+                  onClick={handleEmailClick}
+                >
+                  📧 Email me this grocery list
+                </Button>
 
-              {/* Phone button */}
-              <Button
-                size="md"
-                w="100%"
-                bgGradient="linear(to-r, #344e41, #588157)"
-                color="white"
-                transition="all 0.3s"
-                _hover={{
-                  transform: "scale(1.03)",
-                  bgGradient: "linear(to-r, #ccd5ae, #a3b18a)",
-                  color: "black",
-                }}
-                onClick={handleSmsClick}
-              >
-                📱 Text me this grocery list
-              </Button>
+                <Button
+                  w="100%"
+                  bgGradient="linear(to-r, #344e41, #588157)"
+                  color="white"
+                  onClick={handleSmsClick}
+                >
+                  📱 Text me this grocery list
+                </Button>
+              </VStack>
             </Box>
           </Flex>
         </Box>

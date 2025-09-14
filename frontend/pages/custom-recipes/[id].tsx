@@ -224,13 +224,16 @@ export default function CustomRecipeDetails() {
           <Divider borderColor="#e9edc9" my={10} />
 
           {/* Edit + Send Buttons */}
-          <Flex justify="center" gap={4}>
+          <Flex justify="center" gap={4} flexWrap="wrap">
             <Button
               size="lg"
               bg="#d4a373"
               color="white"
               _hover={{ bg: "#ccd5ae", color: "black" }}
               onClick={() => router.push(`/custom-recipes/edit/${recipe.id}`)}
+              w={{ base: "100%", sm: "auto" }} // full width on mobile
+              whiteSpace="normal" // allow text wrapping
+              textAlign="center"
             >
               ✏️ Edit Recipe
             </Button>
@@ -243,6 +246,9 @@ export default function CustomRecipeDetails() {
               onClick={() =>
                 router.push(`/custom-recipes/${recipe.id}/grocery-list`)
               }
+              w={{ base: "100%", sm: "auto" }}
+              whiteSpace="normal"
+              textAlign="center"
             >
               🛒 Send a grocery list
             </Button>

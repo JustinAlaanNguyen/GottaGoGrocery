@@ -183,10 +183,10 @@ export default function GroceryListPage() {
         recipeId: id,
         recipeTitle,
         items: neededIngredients.map((i) => ({
-          ingredient: i.ingredient,
-          quantity: i.quantity || "",
-          unit: i.unit || "",
-          note: i.note || "",
+          ingredient: String(i.ingredient || ""),
+          quantity: String(i.quantity || ""),
+          unit: String(i.unit || ""),
+          note: String(i.note || ""),
           isCustom: !!i.isCustom,
         })),
       };
@@ -245,18 +245,22 @@ export default function GroceryListPage() {
           </Text>
 
           {/* Two-column layout */}
-          <Flex align="flex-start" gap={8}>
+          <Flex
+            align="flex-start"
+            gap={8}
+            direction={{ base: "column", md: "row" }} // ✅ stack on mobile
+          >
             {/* LEFT COLUMN: Ingredients */}
-            <Box flex="1">
+            <Box flex="1" w="100%">
               <Heading as="h2" fontSize="xl" mb={4} color="#344e41">
                 📝 Ingredients
               </Heading>
               <VStack
                 align="stretch"
                 spacing={4}
-                maxH="600px"
-                overflowY="auto"
-                pr={2}
+                maxH={{ base: "none", md: "600px" }} // ✅ scroll only on desktop
+                overflowY={{ base: "visible", md: "auto" }}
+                pr={{ base: 0, md: 2 }}
               >
                 {ingredients.map((ing) => (
                   <Card
@@ -274,7 +278,12 @@ export default function GroceryListPage() {
                     _hover={{ transform: "scale(1.02)", boxShadow: "md" }}
                   >
                     <CardBody py={3}>
-                      <HStack justify="space-between" align="start">
+                      <HStack
+                        justify="space-between"
+                        align="start"
+                        spacing={2}
+                        wrap="wrap" // ✅ prevent overlap on small screens
+                      >
                         <Checkbox
                           colorScheme="green"
                           size="lg"
@@ -340,7 +349,7 @@ export default function GroceryListPage() {
               {/* Add Custom Item */}
               <Card bg="#fefae0" borderRadius="xl" mb={8}>
                 <CardBody>
-                  <HStack>
+                  <HStack spacing={2} flexDir={{ base: "column", sm: "row" }}>
                     <Input
                       placeholder="Add custom item to the list..."
                       value={newItem}
@@ -407,42 +416,43 @@ export default function GroceryListPage() {
                   )}
                 </CardBody>
               </Card>
+              <VStack spacing={4}>
+                {/* Placeholder Email button */}
+                <Button
+                  size="md"
+                  w="100%"
+                  mb={4}
+                  bgGradient="linear(to-r, #344e41, #588157)"
+                  color="white"
+                  transition="all 0.3s"
+                  _hover={{
+                    transform: "scale(1.03)",
+                    bgGradient: "linear(to-r, #ccd5ae, #a3b18a)",
+                    color: "black",
+                  }}
+                  isLoading={sendingEmail}
+                  onClick={handleEmailClick}
+                >
+                  📧 Email me this grocery list
+                </Button>
 
-              {/* Placeholder Email button */}
-              <Button
-                size="md"
-                w="100%"
-                mb={4}
-                bgGradient="linear(to-r, #344e41, #588157)"
-                color="white"
-                transition="all 0.3s"
-                _hover={{
-                  transform: "scale(1.03)",
-                  bgGradient: "linear(to-r, #ccd5ae, #a3b18a)",
-                  color: "black",
-                }}
-                isLoading={sendingEmail}
-                onClick={handleEmailClick}
-              >
-                📧 Email me this grocery list
-              </Button>
-
-              {/* Placeholder SMS button */}
-              <Button
-                size="md"
-                w="100%"
-                bgGradient="linear(to-r, #344e41, #588157)"
-                color="white"
-                transition="all 0.3s"
-                _hover={{
-                  transform: "scale(1.03)",
-                  bgGradient: "linear(to-r, #ccd5ae, #a3b18a)",
-                  color: "black",
-                }}
-                onClick={handleSmsClick}
-              >
-                📱 Text me this grocery list
-              </Button>
+                {/* Placeholder SMS button */}
+                <Button
+                  size="md"
+                  w="100%"
+                  bgGradient="linear(to-r, #344e41, #588157)"
+                  color="white"
+                  transition="all 0.3s"
+                  _hover={{
+                    transform: "scale(1.03)",
+                    bgGradient: "linear(to-r, #ccd5ae, #a3b18a)",
+                    color: "black",
+                  }}
+                  onClick={handleSmsClick}
+                >
+                  📱 Text me this grocery list
+                </Button>
+              </VStack>
             </Box>
           </Flex>
         </Box>

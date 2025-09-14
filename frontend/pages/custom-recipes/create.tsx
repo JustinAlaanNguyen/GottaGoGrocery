@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Heading,
@@ -26,7 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../../components/Navbar";
 import axios from "axios";
 import UnitAutocompleteInput from "../../components/UnitAutocompleteInput";
-import { containsProfanity } from "../../utils/profanityFilter";
+import { findProfanity } from "../../utils/profanityFilter";
 import QuantityUnitInput from "../../components/QuantityUnitInput";
 import { formatQuantity } from "../../utils/formatFraction";
 
@@ -34,15 +34,9 @@ const floatingEmojiAnimation = {
   y: [0, 15, 0, 15, 0],
   rotate: [0, 15, 0, 15, 0],
   opacity: [0.4, 1, 0.4],
-  transition: {
-    duration: 6,
-    repeat: Infinity,
-    ease: "easeInOut",
-  },
+  transition: { duration: 6, repeat: Infinity, ease: "easeInOut" },
 };
-
 const cookingEmojis = ["🥕", "🍳", "🧄", "🥦", "🍅", "🧂"];
-
 const MotionBox = motion(Box);
 
 // --- Ingredient Autocomplete ---
@@ -50,7 +44,6 @@ interface AutoProps {
   value: string;
   onChange: (val: string) => void;
 }
-
 const IngredientAutocompleteInput: React.FC<AutoProps> = ({
   value,
   onChange,
@@ -58,6 +51,11 @@ const IngredientAutocompleteInput: React.FC<AutoProps> = ({
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+
+  // ✅ Keep local query in sync with parent value
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
 
   const handleChange = async (e: any) => {
     const val = e.target.value;
@@ -80,7 +78,6 @@ const IngredientAutocompleteInput: React.FC<AutoProps> = ({
           },
         }
       );
-
       const names = res.data.map((i: any) => i.name);
       setSuggestions(names);
       setIsOpen(names.length > 0);
@@ -103,6 +100,8 @@ const IngredientAutocompleteInput: React.FC<AutoProps> = ({
           value={query}
           onChange={handleChange}
           bg="white"
+          size={{ base: "lg", md: "md" }}
+          fontSize={{ base: "md", md: "sm" }}
         />
       </PopoverTrigger>
       <PopoverContent maxH="200px" overflowY="auto" zIndex={999}>
@@ -132,8 +131,14 @@ export default function CreateCustomRecipePage() {
   const [title, setTitle] = useState("");
   const [recipeDescription, setRecipeDescription] = useState("");
   const [serving, setServing] = useState("");
-  const [ingredients, setIngredients] = useState([
-    { ingredient: "", quantity: "", unit: "" },
+  interface Ingredient {
+    id: number;
+    ingredient: string;
+    quantity: string;
+    unit: string;
+  }
+  const [ingredients, setIngredients] = useState<Ingredient[]>([
+    { id: Date.now(), ingredient: "", quantity: "", unit: "" },
   ]);
   const [steps, setSteps] = useState([""]);
   const [notes, setNotes] = useState("");
@@ -144,10 +149,11 @@ export default function CreateCustomRecipePage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [recipeUrl, setRecipeUrl] = useState("");
-
   const [isExtracting, setIsExtracting] = useState(false);
-
   const [author, setAuthor] = useState<string | null>(null);
+
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
+  const previewRef = useRef<HTMLDivElement | null>(null);
 
   // 🚀 Auth check
   useEffect(() => {
@@ -194,23 +200,26 @@ export default function CreateCustomRecipePage() {
       });
     }
 
-    // 🚨 Profanity check for all fields
+    // 🚨 Profanity check only on text-based fields
+    // 🚨 Profanity check only on text-based fields
     const fieldsToCheck = [
       title,
-      recipeDescription,
-      serving,
       notes,
-      ...steps,
       ...ingredients.map((i) => i.ingredient),
-      ...ingredients.map((i) => i.quantity),
-      ...ingredients.map((i) => i.unit),
     ];
 
-    if (fieldsToCheck.some((field) => containsProfanity(field))) {
+    const badTokens = fieldsToCheck.flatMap((field) =>
+      field ? findProfanity(field) : []
+    );
+
+    if (badTokens.length > 0) {
+      console.error("Profanity detected:", badTokens);
       return toast({
         status: "error",
         title: "Inappropriate content detected",
-        description: "Please remove profanity before saving.",
+        description: `Please remove profanity before saving. Offending words: ${badTokens.join(
+          ", "
+        )}`,
       });
     }
 
@@ -237,15 +246,13 @@ export default function CreateCustomRecipePage() {
       "notes",
       author ? `Original recipe by ${author}\n\n${notes}` : notes
     );
-
-    // stringify arrays because FormData only supports strings/files
     formData.append("ingredients", JSON.stringify(ingredients));
     formData.append("steps", JSON.stringify(steps));
 
     if (image) {
-      formData.append("image", image); // user uploaded file
+      formData.append("image", image);
     } else if (imagePreview) {
-      formData.append("imageUrl", imagePreview); // extracted image URL
+      formData.append("imageUrl", imagePreview);
     }
 
     await axios.post("http://localhost:5000/api/custom-recipes", formData, {
@@ -262,7 +269,7 @@ export default function CreateCustomRecipePage() {
     }
 
     try {
-      setIsExtracting(true); // 🚀 Start loading animation
+      setIsExtracting(true);
       const res = await axios.post(
         "http://localhost:5000/api/custom-recipes/extract",
         { url: recipeUrl }
@@ -274,31 +281,33 @@ export default function CreateCustomRecipePage() {
         data.summary ? data.summary.replace(/<[^>]+>/g, "") : ""
       );
       setServing(data.servings?.toString() || "");
+
+      // normalize ingredients so names never disappear
       setIngredients(
         (data.extendedIngredients || []).map((ing: any) => ({
-          ingredient: ing.name,
+          id: Date.now() + Math.random(), // make sure each has a unique id
+          ingredient: ing.name || "",
           quantity: formatQuantity(ing.amount?.toString() || ""),
           unit: ing.unit || "",
         }))
       );
 
-      setSteps(
-        data.analyzedInstructions?.[0]?.steps.map((s: any) => s.step) || []
-      );
+      // merge all instruction groups
+      const mergedSteps =
+        data.analyzedInstructions?.flatMap((group: any) =>
+          group.steps.map((s: any) => s.step || "")
+        ) || [];
+      setSteps(mergedSteps.length > 0 ? mergedSteps : [""]);
 
       if (data.image) setImagePreview(data.image);
-
-      // 🚀 Save author info into notes (non-editable part)
-      if (data.creditsText) {
-        setAuthor(data.creditsText);
-      }
+      if (data.creditsText) setAuthor(data.creditsText);
 
       toast({ status: "success", title: "Recipe imported!" });
     } catch (err) {
       console.error("Extract failed:", err);
       toast({ status: "error", title: "Could not extract recipe" });
     } finally {
-      setIsExtracting(false); // 🚀 Stop loading animation
+      setIsExtracting(false);
     }
   };
 
@@ -314,9 +323,9 @@ export default function CreateCustomRecipePage() {
       <Flex
         maxW="6xl"
         mx="auto"
-        py={14}
-        px={6}
-        gap={10}
+        py={{ base: 6, md: 14 }}
+        px={{ base: 4, md: 6 }}
+        gap={{ base: 6, md: 10 }}
         position="relative"
         zIndex={1}
         direction={{ base: "column", md: "row" }}
@@ -329,13 +338,12 @@ export default function CreateCustomRecipePage() {
           shadow="lg"
           p={10}
           border="1px solid #e9edc9"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
         >
           <Heading mb={6} color="#344e41">
             Create a Custom Recipe 💡
           </Heading>
 
+          {/* URL Autofill */}
           <Heading fontSize="md" color="#344e41">
             Have a recipe already? Import Recipe from a link!
           </Heading>
@@ -352,44 +360,37 @@ export default function CreateCustomRecipePage() {
               bg="#d4a373"
               color="white"
               _hover={{ bg: "#ccd5ae", color: "black" }}
-              isLoading={isExtracting} // ✅ Chakra has built-in spinner!
+              isLoading={isExtracting}
               loadingText="Autofilling..."
             >
               Autofill
             </Button>
           </Flex>
 
+          {/* Upload Image */}
           <Box>
             <Input
               id="recipe-image-upload"
               type="file"
               accept="image/*"
-              display="none" // 👈 hides the ugly native input
+              display="none"
               onChange={(e) => {
                 const file = e.target.files?.[0] || null;
                 setImage(file);
-                if (file) {
-                  setImagePreview(URL.createObjectURL(file));
-                }
+                if (file) setImagePreview(URL.createObjectURL(file));
               }}
             />
-
             <label htmlFor="recipe-image-upload">
-              <Button
-                as="span" // 👈 so clicking the button triggers the hidden input
-                bg="#d4a373"
-                color="white"
-                _hover={{ bg: "#ccd5ae", color: "black" }}
-              >
+              <Button as="span" bg="#d4a373" color="white">
                 Upload Image
               </Button>
             </label>
-
             <Text mt={2} fontSize="sm" color="gray.600">
               {image ? image.name : "No recipe image chosen"}
             </Text>
           </Box>
 
+          {/* Form */}
           <VStack spacing={6} align="stretch">
             <Input
               placeholder="Recipe Title"
@@ -410,46 +411,40 @@ export default function CreateCustomRecipePage() {
               onChange={(e) => setServing(e.target.value)}
               bg="#faedcd"
             />
-
             <Divider borderColor="#e9edc9" />
-
+            // --- Ingredients Section in Main Component ---
             <Heading fontSize="lg" color="#344e41">
               Ingredients
             </Heading>
             <AnimatePresence>
               {ingredients.map((ing, i) => (
                 <MotionBox
-                  key={i}
+                  key={ing.id} // ✅ unique id instead of index
                   as={SimpleGrid}
-                  columns={3}
+                  columns={{ base: 1, md: 3 }}
                   spacing={3}
                   alignItems="center"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
                 >
-                  {/* Quantity + Unit */}
                   <QuantityUnitInput
                     value={{ quantity: ing.quantity, unit: ing.unit }}
                     onChange={(val) => {
-                      const updated = [...ingredients];
-                      updated[i].quantity = val.quantity;
-                      updated[i].unit = val.unit;
+                      const updated = ingredients.map((item) =>
+                        item.id === ing.id
+                          ? { ...item, quantity: val.quantity, unit: val.unit }
+                          : item
+                      );
                       setIngredients(updated);
                     }}
                   />
-
-                  {/* Ingredient name (with Spoonacular autocomplete) */}
                   <IngredientAutocompleteInput
                     value={ing.ingredient}
                     onChange={(val) => {
-                      const updated = [...ingredients];
-                      updated[i].ingredient = val;
+                      const updated = ingredients.map((item) =>
+                        item.id === ing.id ? { ...item, ingredient: val } : item
+                      );
                       setIngredients(updated);
                     }}
                   />
-
-                  {/* Delete button */}
                   <IconButton
                     aria-label="Delete"
                     icon={<CloseIcon />}
@@ -458,44 +453,47 @@ export default function CreateCustomRecipePage() {
                     color="white"
                     _hover={{ bg: "#611b1b" }}
                     onClick={() => {
-                      setIngredients(ingredients.filter((_, idx) => idx !== i));
+                      const updated = ingredients.filter(
+                        (item) => item.id !== ing.id
+                      );
+                      setIngredients(
+                        updated.length > 0
+                          ? updated
+                          : [
+                              {
+                                id: Date.now(),
+                                ingredient: "",
+                                quantity: "",
+                                unit: "",
+                              },
+                            ]
+                      );
                     }}
                   />
                 </MotionBox>
               ))}
             </AnimatePresence>
-
             <Button
               size="sm"
               onClick={() =>
                 setIngredients([
                   ...ingredients,
-                  { ingredient: "", quantity: "", unit: "" },
+                  { id: Date.now(), ingredient: "", quantity: "", unit: "" },
                 ])
               }
               bg="#d4a373"
               color="white"
-              _hover={{ bg: "#ccd5ae", color: "black" }}
             >
               + Add Ingredient
             </Button>
-
             <Divider borderColor="#e9edc9" />
-
+            {/* Steps */}
             <Heading fontSize="lg" color="#344e41">
               Steps
             </Heading>
             <AnimatePresence>
               {steps.map((st, i) => (
-                <MotionBox
-                  key={i}
-                  display="flex"
-                  gap={2}
-                  alignItems="center"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
+                <MotionBox key={i} display="flex" gap={2} alignItems="center">
                   <Textarea
                     placeholder={`Step ${i + 1}`}
                     value={st}
@@ -512,10 +510,10 @@ export default function CreateCustomRecipePage() {
                     size="sm"
                     bg="#a32c2c"
                     color="white"
-                    _hover={{ bg: "#611b1b" }}
-                    onClick={() =>
-                      setSteps(steps.filter((_, idx) => idx !== i))
-                    }
+                    onClick={() => {
+                      const updated = steps.filter((_, idx) => idx !== i);
+                      setSteps(updated.length > 0 ? updated : [""]);
+                    }}
                   />
                 </MotionBox>
               ))}
@@ -525,51 +523,56 @@ export default function CreateCustomRecipePage() {
               onClick={() => setSteps([...steps, ""])}
               bg="#d4a373"
               color="white"
-              _hover={{ bg: "#ccd5ae", color: "black" }}
             >
               + Add Step
             </Button>
-
+            {/* Notes */}
             <Textarea
               placeholder="Notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               bg="#faedcd"
             />
-
-            <Button
-              bg="#344e41"
-              color="white"
-              size="lg"
-              _hover={{ bg: "#ccd5ae", color: "black" }}
-              onClick={handleSubmit}
-            >
+            <Button bg="#344e41" color="white" size="lg" onClick={handleSubmit}>
               Save Recipe
             </Button>
-
             <Button
               bg="#d4a373"
               color="white"
               size="lg"
-              _hover={{ bg: "#ccd5ae", color: "black" }}
               onClick={() => router.back()}
             >
               Cancel
+            </Button>
+            {/* Mobile preview toggle */}
+            <Button
+              display={{ base: "block", md: "none" }}
+              bg="#d4a373"
+              color="white"
+              onClick={() => {
+                setShowMobilePreview(!showMobilePreview);
+                if (!showMobilePreview) {
+                  setTimeout(() => {
+                    previewRef.current?.scrollIntoView({ behavior: "smooth" });
+                  }, 200);
+                }
+              }}
+            >
+              {showMobilePreview ? "Hide Preview" : "Show Preview"}
             </Button>
           </VStack>
         </MotionBox>
 
         {/* Right Panel Preview */}
         <MotionBox
+          ref={previewRef}
           bg="white"
           rounded="2xl"
           shadow="lg"
           p={8}
           flex="1"
           border="1px solid #e9edc9"
-          display={{ base: "none", md: "block" }}
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
+          display={{ base: showMobilePreview ? "block" : "none", md: "block" }}
         >
           <Heading mb={4} color="#344e41">
             Live Preview 🧾
@@ -625,7 +628,6 @@ export default function CreateCustomRecipePage() {
           <Heading size="md" mt={4} color="#344e41">
             Notes
           </Heading>
-
           {author && (
             <Box
               bg="#e9edc9"
@@ -638,7 +640,6 @@ export default function CreateCustomRecipePage() {
               Original recipe by {author}
             </Box>
           )}
-
           <Textarea
             placeholder="Your notes..."
             value={notes}

@@ -10,6 +10,7 @@ import {
   Text,
   VStack,
   Link as ChakraLink,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import axios from "axios";
@@ -41,6 +42,9 @@ const Signup = (): React.ReactElement => {
   const [success, setSuccess] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [veggies, setVeggies] = React.useState<React.ReactElement[]>([]);
+
+  // Responsive toggle for mobile background
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   React.useEffect(() => {
     const elements = [...Array(30)].map((_, i) => {
@@ -131,7 +135,6 @@ const Signup = (): React.ReactElement => {
       });
 
       setSuccess(true);
-      // Instead of "Signup successful!"
       setMessage(
         res.data.message ||
           "Signup successful! Please check your email to verify your account."
@@ -177,73 +180,7 @@ const Signup = (): React.ReactElement => {
         animate={floatingAnimation}
       />
 
-      {/* Decorative Leaves and Branches */}
-      <MotionBox
-        position="absolute"
-        width="90px"
-        height="30px"
-        bg="#2d452c"
-        borderRadius="50%"
-        top="61.4vh"
-        left="34.4vw"
-        style={{
-          transformOrigin: "right center",
-          transform: "translate(-10px, -50%) rotate(-45deg)",
-        }}
-        zIndex={0}
-        animate={{ rotate: [70, 62, 70, 62, 70] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <MotionBox
-        position="absolute"
-        width="60px"
-        height="1px"
-        borderRadius="full"
-        top="65vh"
-        left="36.4vw"
-        style={{
-          transformOrigin: "right center",
-          transform: "translate(-50%, -50%) rotate(-45deg)",
-        }}
-        zIndex={0}
-        bgGradient="linear(to-r, #dbd8d8ff 60%, black 40%)"
-        animate={{ rotate: [69, 65, 69, 65, 69] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <MotionBox
-        position="absolute"
-        width="90px"
-        height="30px"
-        bg="#2d452c"
-        borderRadius="50%"
-        top="44.7vh"
-        left="56.5vw"
-        style={{
-          transformOrigin: "right center",
-          transform: "translate(-10px, -50%) rotate(-45deg)",
-        }}
-        zIndex={0}
-        animate={{ rotate: [135, 125, 135, 125, 135] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <MotionBox
-        position="absolute"
-        width="60px"
-        height="1px"
-        borderRadius="full"
-        top="47.9vh"
-        left="57.4%"
-        style={{
-          transformOrigin: "right center",
-          transform: "translate(-50%, -50%) rotate(-45deg)",
-        }}
-        zIndex={0}
-        bgGradient="linear(to-r, #dbd8d8ff 60%, black 40%)"
-        animate={{ rotate: [135, 127, 135, 127, 135] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      {/* Floating Vegetable Emojis */}
+      {/* Floating Veggies */}
       <Box position="absolute" inset={0} zIndex={0} pointerEvents="none">
         {veggies}
       </Box>
@@ -264,22 +201,88 @@ const Signup = (): React.ReactElement => {
             bg="white"
             border="1px solid #e9edc9"
             backdropFilter="blur(10px)"
-            p={8}
+            p={{ base: 4, md: 8 }} // smaller padding on mobile
             borderRadius="3xl"
             boxShadow="2xl"
-            maxW="md"
+            maxW={{ base: "80%", md: "md" }} // shrink width on mobile
             w="full"
+            position="relative" // ✅ make this the container for the leaves
             animate={shake ? { x: [-10, 10, -10, 10, 0] } : {}}
             transition={{ duration: 0.4 }}
           >
+            {/* 🌿 Leaf accents attached to the card */}
+            <MotionBox
+              position="absolute"
+              width="90px"
+              height="30px"
+              bg="#2d452c"
+              borderRadius="50%"
+              top="45px"
+              left="-70px"
+              style={{ transform: "rotate(-45deg)" }}
+              zIndex={0}
+              animate={{ rotate: [70, 62, 70, 62, 70] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <MotionBox
+              position="absolute"
+              width="60px"
+              height="1px"
+              borderRadius="full"
+              top="90px"
+              left="-40px"
+              zIndex={0}
+              bgGradient="linear(to-r, #dbd8d8 60%, black 40%)"
+              animate={{ rotate: [69, 65, 69, 65, 69] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <MotionBox
+              position="absolute"
+              width="90px"
+              height="30px"
+              bg="#2d452c"
+              borderRadius="50%"
+              bottom="115px"
+              right="-90px"
+              style={{ transform: "rotate(135deg)" }}
+              zIndex={0}
+              animate={{ rotate: [135, 125, 135, 125, 135] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <MotionBox
+              position="absolute"
+              width="60px"
+              height="1px"
+              borderRadius="full"
+              bottom="100px"
+              right="-50px"
+              bgGradient="linear(to-r, #dbd8d8 60%, black 40%)"
+              animate={{ rotate: [135, 127, 135, 127, 135] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+
+            {/* Heading with rounded background on mobile */}
             <Heading
               as="h2"
-              fontSize="4xl"
+              fontSize={{ base: "2xl", md: "4xl" }} // smaller heading on mobile
               color="#344e41"
               textAlign="center"
               mb={10}
+              position="relative"
             >
-              Create Your Account
+              {isMobile ? (
+                <Box
+                  bg="#e9edc9"
+                  px={4}
+                  py={2}
+                  borderRadius="full"
+                  display="inline-block"
+                >
+                  Create Your Account
+                </Box>
+              ) : (
+                "Create Your Account"
+              )}
             </Heading>
 
             <VStack spacing={6}>

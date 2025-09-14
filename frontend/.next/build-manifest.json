@@ -13,11 +13,6 @@
   "rootMainFiles": [],
   "rootMainFilesTree": {},
   "pages": {
-    "/": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/index.js"
-    ],
     "/_app": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
@@ -28,22 +23,30 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-<<<<<<< HEAD
-    "/account/signin": [
+    "/recipes/saved-recipes": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/account/signin.js"
+      "static/chunks/pages/recipes/saved-recipes.js"
     ],
-    "/account/signup": [
+    "/saved-searched-recipes/[id]": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/account/signup.js"
-=======
-    "/custom-recipes/[id]/grocery-list": [
+      "static/chunks/pages/saved-searched-recipes/[id].js"
+    ],
+    "/saved-searched-recipes/[id]/grocery-list": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/custom-recipes/[id]/grocery-list.js"
->>>>>>> baceb4d93cf15de923b45835bc79cc46b505c405
+      "static/chunks/pages/saved-searched-recipes/[id]/grocery-list.js"
+    ],
+    "/search-recipe": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/search-recipe.js"
+    ],
+    "/search-recipes/[id]": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/search-recipes/[id].js"
     ]
   },
   "ampFirstPages": []

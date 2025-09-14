@@ -185,11 +185,20 @@ export default function SavedRecipesPage() {
             bg="white"
             border="1px solid #e9edc9"
             whileHover={{ scale: 1.02 }}
+            cursor="pointer"
+            // 👉 Make the whole card clickable on mobile
+            onClick={() => {
+              if (recipe.type === "custom") {
+                router.push(`/custom-recipes/${recipe.id}`);
+              } else {
+                router.push(`/saved-searched-recipes/${recipe.id}`);
+              }
+            }}
           >
             <Image
               src={
                 recipe.image
-                  ? recipe.image // already a full URL from backend
+                  ? recipe.image
                   : "https://via.placeholder.com/400x300?text=Custom+Recipe"
               }
               alt={recipe.title}
@@ -198,7 +207,7 @@ export default function SavedRecipesPage() {
               objectFit="cover"
             />
 
-            {/* Overlay on hover */}
+            {/* Overlay on hover (desktop only) */}
             <MotionBox
               initial={{ opacity: 0 }}
               whileHover={{ opacity: 1 }}
@@ -206,7 +215,7 @@ export default function SavedRecipesPage() {
               position="absolute"
               inset={0}
               bg="rgba(52, 78, 65, 0.7)"
-              display="flex"
+              display={{ base: "none", md: "flex" }} // ❗ Hide overlay on mobile
               alignItems="center"
               justifyContent="center"
             >
@@ -215,7 +224,9 @@ export default function SavedRecipesPage() {
                 bg="#faedcd"
                 color="#344e41"
                 _hover={{ bg: "white" }}
-                onClick={() => {
+                // You can keep this for desktop experience
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent card's click firing
                   if (recipe.type === "custom") {
                     router.push(`/custom-recipes/${recipe.id}`);
                   } else {

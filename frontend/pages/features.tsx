@@ -11,12 +11,12 @@ import {
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import {
-  FaUserAlt,
+  FaBook,
   FaSearch,
   FaClipboardList,
   FaPaperPlane,
   FaHeart,
-  FaSyncAlt,
+  FaShare,
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 
@@ -25,16 +25,16 @@ const MotionVStack = motion(VStack);
 
 const features = [
   {
-    icon: FaUserAlt,
-    title: "Manage Your Account",
+    icon: FaBook,
+    title: "Create Your Own Recipe",
     description:
-      "Create, update, and delete your account. Verify your email or phone number to get started securely.",
+      "Create or import custom recipes with ease. Your personal recipe book at your fingertips.",
   },
   {
     icon: FaSearch,
     title: "Search for Recipes",
     description:
-      "Enter a dish name and instantly see the top 5 matching recipes with visuals and simplified ingredient info.",
+      "Enter a dish name and instantly see the top matching recipes with visuals and simplified ingredient info.",
   },
   {
     icon: FaClipboardList,
@@ -55,10 +55,10 @@ const features = [
       "Save any recipe to your personal collection. View or delete saved favorites at any time.",
   },
   {
-    icon: FaSyncAlt,
-    title: "Smart Search from Your Saved Recipes",
+    icon: FaShare,
+    title: "Share Recipes With Friends",
     description:
-      "Quickly search through your own saved recipes to rediscover meals you've loved before.",
+      "Easily share your favorite recipes with friends and family via email or phone number.",
   },
 ];
 
@@ -151,7 +151,35 @@ export default function FeaturesPage() {
               whileHover={{ scale: 1.03 }}
               transition={{ duration: 0.3 }}
               spacing={4}
+              position="relative" // allow absolute overlay
+              overflow="hidden"
             >
+              {/* Overlay for COMING SOON */}
+              {feature.title === "Share Recipes With Friends" && (
+                <Box
+                  position="absolute"
+                  top={0}
+                  left={0}
+                  right={0}
+                  bottom={0}
+                  bg="rgba(255, 255, 255, 0.8)"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  borderRadius="xl"
+                  zIndex={2}
+                >
+                  <Text
+                    fontSize="xl"
+                    fontWeight="bold"
+                    color="#344e41"
+                    transform="rotate(-15deg)"
+                  >
+                    🚧 COMING SOON 🚧
+                  </Text>
+                </Box>
+              )}
+
               <Box
                 bg="#d4a373"
                 paddingTop={3}

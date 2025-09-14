@@ -203,7 +203,7 @@ export default function SavedRecipeDetails() {
           <Divider borderColor="#e9edc9" my={10} />
 
           {/* Buttons */}
-          <Flex justify="center" gap={4}>
+          <Flex justify="center" gap={4} flexWrap="wrap">
             <Button
               size="lg"
               bg="#344e41"
@@ -212,6 +212,9 @@ export default function SavedRecipeDetails() {
               onClick={() =>
                 router.push(`/saved-searched-recipes/${recipe.id}/grocery-list`)
               }
+              w={{ base: "100%", sm: "auto" }} // full width on mobile
+              whiteSpace="normal" // allow text wrapping
+              textAlign="center"
             >
               🛒 Send a grocery list
             </Button>
@@ -222,6 +225,9 @@ export default function SavedRecipeDetails() {
               color="white"
               _hover={{ bg: "red.400", color: "black" }}
               onClick={handleDelete}
+              w={{ base: "100%", sm: "auto" }}
+              whiteSpace="normal"
+              textAlign="center"
             >
               🗑️ Delete Recipe
             </Button>

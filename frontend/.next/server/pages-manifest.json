@@ -2,13 +2,9 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-<<<<<<< HEAD
-  "/": "pages/index.js",
-  "/account/signin": "pages/account/signin.js",
-  "/account/signup": "pages/account/signup.js",
-  "/home": "pages/home.js"
-=======
-  "/custom-recipes/[id]/grocery-list": "pages/custom-recipes/[id]/grocery-list.js",
-  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js"
->>>>>>> baceb4d93cf15de923b45835bc79cc46b505c405
+  "/recipes/saved-recipes": "pages/recipes/saved-recipes.js",
+  "/saved-searched-recipes/[id]/grocery-list": "pages/saved-searched-recipes/[id]/grocery-list.js",
+  "/search-recipe": "pages/search-recipe.js",
+  "/saved-searched-recipes/[id]": "pages/saved-searched-recipes/[id].js",
+  "/search-recipes/[id]": "pages/search-recipes/[id].js"
 }
