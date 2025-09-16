@@ -288,7 +288,7 @@ export default function ProfilePage() {
                   <FormControl isInvalid={!!errors.phone}>
                     <FormLabel>Phone</FormLabel>
                     <Input
-                      placeholder="+12263431643" // <-- show correct example
+                      placeholder="+1112223333" // <-- show correct example
                       bg="#faedcd"
                       value={formData.phone}
                       onChange={(e) => {

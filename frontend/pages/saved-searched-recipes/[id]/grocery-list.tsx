@@ -63,6 +63,7 @@ export default function GroceryListPage() {
             checked: false,
             crossed: false,
             note: "",
+            isCustom: false,
           }))
         );
       } catch (err) {
@@ -290,34 +291,35 @@ export default function GroceryListPage() {
                     _hover={{ transform: "scale(1.02)", boxShadow: "md" }}
                   >
                     <CardBody py={3}>
-                      <HStack
-                        justify="space-between"
-                        align="start"
-                        spacing={2}
-                        wrap="wrap"
-                      >
-                        <Checkbox
-                          colorScheme="green"
-                          size="lg"
-                          isChecked={ing.checked}
-                          onChange={() => toggleCheck(ing.id)}
-                          transition="transform 0.15s"
-                          _checked={{ transform: "scale(1.1)" }}
-                        >
-                          <Text
-                            as={ing.crossed ? "s" : "span"}
-                            fontWeight="medium"
-                            color={ing.crossed ? "gray.500" : "black"}
+                      <Flex justify="space-between" align="center" gap={2}>
+                        {/* Left side: checkbox + text */}
+                        <Box flex="1" minW={0}>
+                          <Checkbox
+                            colorScheme="green"
+                            size="lg"
+                            isChecked={ing.checked}
+                            onChange={() => toggleCheck(ing.id)}
+                            transition="transform 0.15s"
+                            _checked={{ transform: "scale(1.1)" }}
                           >
-                            {formatIngredient(ing)}
-                          </Text>
-                          {ing.isCustom && (
-                            <Badge ml={2} colorScheme="yellow">
-                              custom
-                            </Badge>
-                          )}
-                        </Checkbox>
+                            <Text
+                              as={ing.crossed ? "s" : "span"}
+                              fontWeight="medium"
+                              color={ing.crossed ? "gray.500" : "black"}
+                              noOfLines={2} // ✅ prevents pushing button down, wraps within area
+                              wordBreak="break-word"
+                            >
+                              {formatIngredient(ing)}
+                            </Text>
+                            {ing.isCustom && (
+                              <Badge ml={2} colorScheme="yellow">
+                                custom
+                              </Badge>
+                            )}
+                          </Checkbox>
+                        </Box>
 
+                        {/* Right side: delete button stays aligned */}
                         <IconButton
                           aria-label="Remove ingredient"
                           icon={<CloseIcon />}
@@ -331,7 +333,7 @@ export default function GroceryListPage() {
                             color: "red.500",
                           }}
                         />
-                      </HStack>
+                      </Flex>
 
                       {/* Note field */}
                       <Input

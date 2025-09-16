@@ -7,7 +7,9 @@ export default class MyDocument extends Document {
   render() {
     return (
       <Html lang="en">
-        <Head />
+        <Head>
+          <link rel="icon" href="/gggBrowserlogo.png" type="image/png" />
+        </Head>
         <body>
           {/* Ensures color mode is consistent */}
           <ColorModeScript initialColorMode={theme.config.initialColorMode} />

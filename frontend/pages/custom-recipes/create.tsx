@@ -366,6 +366,10 @@ export default function CreateCustomRecipePage() {
               _hover={{ bg: "#ccd5ae", color: "black" }}
               isLoading={isExtracting}
               loadingText="Autofilling..."
+              whiteSpace="nowrap"
+              textOverflow="ellipsis"
+              overflow="hidden"
+              minW="120px"
             >
               Autofill
             </Button>
@@ -423,23 +427,59 @@ export default function CreateCustomRecipePage() {
             <AnimatePresence>
               {ingredients.map((ing, i) => (
                 <MotionBox
-                  key={ing.id} // ✅ unique id instead of index
-                  as={SimpleGrid}
-                  columns={{ base: 1, md: 3 }}
-                  spacing={3}
+                  key={ing.id}
+                  display={{ base: "flex", md: "grid" }}
+                  gridTemplateColumns={{ md: "1fr 1fr auto" }}
+                  flexDirection={{ base: "column", md: "initial" }}
+                  gap={3}
                   alignItems="center"
                 >
-                  <QuantityUnitInput
-                    value={{ quantity: ing.quantity, unit: ing.unit }}
-                    onChange={(val) => {
-                      const updated = ingredients.map((item) =>
-                        item.id === ing.id
-                          ? { ...item, quantity: val.quantity, unit: val.unit }
-                          : item
-                      );
-                      setIngredients(updated);
-                    }}
-                  />
+                  {/* Quantity + Unit side-by-side */}
+                  <Flex gap={2} w="full">
+                    <QuantityUnitInput
+                      value={{ quantity: ing.quantity, unit: ing.unit }}
+                      onChange={(val) => {
+                        const updated = ingredients.map((item) =>
+                          item.id === ing.id
+                            ? {
+                                ...item,
+                                quantity: val.quantity,
+                                unit: val.unit,
+                              }
+                            : item
+                        );
+                        setIngredients(updated);
+                      }}
+                    />
+                    <IconButton
+                      display={{ base: "flex", md: "none" }}
+                      aria-label="Delete"
+                      icon={<CloseIcon />}
+                      size="sm"
+                      bg="#a32c2c"
+                      color="white"
+                      _hover={{ bg: "#611b1b" }}
+                      onClick={() => {
+                        const updated = ingredients.filter(
+                          (item) => item.id !== ing.id
+                        );
+                        setIngredients(
+                          updated.length > 0
+                            ? updated
+                            : [
+                                {
+                                  id: Date.now(),
+                                  ingredient: "",
+                                  quantity: "",
+                                  unit: "",
+                                },
+                              ]
+                        );
+                      }}
+                    />
+                  </Flex>
+
+                  {/* Ingredient input */}
                   <IngredientAutocompleteInput
                     value={ing.ingredient}
                     onChange={(val) => {
@@ -449,7 +489,10 @@ export default function CreateCustomRecipePage() {
                       setIngredients(updated);
                     }}
                   />
+
+                  {/* Delete button on desktop */}
                   <IconButton
+                    display={{ base: "none", md: "flex" }}
                     aria-label="Delete"
                     icon={<CloseIcon />}
                     size="sm"

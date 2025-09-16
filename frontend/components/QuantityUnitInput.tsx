@@ -3,6 +3,7 @@
 
 import { Input, Flex } from "@chakra-ui/react";
 import { formatQuantity } from "../utils/formatFraction";
+import UnitAutocompleteInput from "./UnitAutocompleteInput";
 
 interface Props {
   value: { quantity: string; unit: string };
@@ -12,6 +13,7 @@ interface Props {
 export default function QuantityUnitInput({ value, onChange }: Props) {
   return (
     <Flex gap={2}>
+      {/* Quantity input */}
       <Input
         placeholder="Qty"
         type="text"
@@ -25,12 +27,11 @@ export default function QuantityUnitInput({ value, onChange }: Props) {
         }
         bg="white"
       />
-      <Input
-        placeholder="Unit"
-        type="text"
+
+      {/* Unit input now with autocomplete */}
+      <UnitAutocompleteInput
         value={value.unit}
-        onChange={(e) => onChange({ ...value, unit: e.target.value })}
-        bg="white"
+        onChange={(unitVal) => onChange({ ...value, unit: unitVal })}
       />
     </Flex>
   );

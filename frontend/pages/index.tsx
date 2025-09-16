@@ -10,10 +10,10 @@ const MotionFlex = motion(Flex);
 
 // 🌊 Floating animation for circles
 const floatingAnimation = {
-  y: [0, -10, 0, 10, 0],
-  scale: [1, 1.05, 1, 1.08, 1],
+  y: [0, -7, 0, 7, 0],
+  scale: [1, 1.05, 1, 1.05, 1],
   transition: {
-    duration: 6,
+    duration: 4,
     repeat: Infinity,
     ease: "easeInOut",
   },
@@ -91,7 +91,12 @@ const BranchWithLeaf = ({
 
 const HomePage: React.FC = () => {
   return (
-    <Box bg="#ccd5ae" minH="100vh" position="relative" overflow="hidden">
+    <Box
+      bgGradient="linear(to-b, #ccd5ae, #ccd5ae, #e0e8c2)"
+      minH="100vh"
+      position="relative"
+      overflow="hidden"
+    >
       <Navbar />
 
       {/* ✅ Mobile View */}
@@ -108,7 +113,6 @@ const HomePage: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        bgGradient="linear(to-b, #ccd5ae, #e9edc9)"
         position="relative"
       >
         {/* 🎈 Floating Circle Top-Left */}

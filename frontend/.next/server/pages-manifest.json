@@ -2,9 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/home": "pages/home.js",
-  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
-  "/recipes/saved-recipes": "pages/recipes/saved-recipes.js",
-  "/saved-searched-recipes/[id]": "pages/saved-searched-recipes/[id].js",
-  "/saved-searched-recipes/[id]/grocery-list": "pages/saved-searched-recipes/[id]/grocery-list.js"
+  "/": "pages/index.js",
+  "/custom-recipes": "pages/custom-recipes.js",
+  "/account/signin": "pages/account/signin.js"
 }
