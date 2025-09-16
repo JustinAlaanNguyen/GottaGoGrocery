@@ -289,7 +289,7 @@ export default function SpoonacularRecipeDetails() {
 
                   setTimeout(() => {
                     router.push(
-                      `${process.env.NEXT_PUBLIC_API_BASE_URL}/recipes/saved-recipes`
+                      `https://www.gottagogrocery.com/recipes/saved-recipes`
                     );
                   }, 1500);
                 } catch (err) {
