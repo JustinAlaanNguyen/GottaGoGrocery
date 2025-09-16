@@ -19,6 +19,7 @@ import {
   FaShare,
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
+import { ElementType } from "react";
 
 const MotionBox = motion(Box);
 const MotionVStack = motion(VStack);
@@ -188,7 +189,12 @@ export default function FeaturesPage() {
                 borderRadius="full"
                 boxShadow="0 0 15px #faedcd"
               >
-                <Icon as={feature.icon} w={6} h={6} color="#fbfaf8" />
+                <Icon
+                  as={feature.icon as ElementType}
+                  w={6}
+                  h={6}
+                  color="#fbfaf8"
+                />
               </Box>
               <Heading size="md" color="#344e41">
                 {feature.title}
