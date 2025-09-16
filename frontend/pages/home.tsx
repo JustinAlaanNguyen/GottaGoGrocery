@@ -19,6 +19,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import { FaExclamationCircle } from "react-icons/fa";
+import { Icon } from "@chakra-ui/react";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -280,9 +281,10 @@ export default function UserHome() {
                                   repeat: Infinity,
                                 }}
                               >
-                                <FaExclamationCircle
+                                <Icon
+                                  as={FaExclamationCircle}
                                   color="#d9534f"
-                                  size={20}
+                                  boxSize={5}
                                 />
                               </motion.div>
                             )}
