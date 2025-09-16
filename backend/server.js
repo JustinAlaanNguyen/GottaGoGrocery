@@ -10,7 +10,11 @@ const savedRecipeRoutes = require("./src/routes/savedRecipeRoutes");
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: process.env.CLIENT_URL || "*",
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 // Serve uploaded images (static files)
 app.use("/uploads", express.static("uploads"));
