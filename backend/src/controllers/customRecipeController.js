@@ -3,13 +3,23 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 const fs = require("fs");
 const path = require("path");
 
+const { S3Client, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
 exports.createCustomRecipe = async (req, res) => {
   let { userId, title, recipeDescription, serving, ingredients, steps, notes } =
     req.body;
 
   // multer will attach file info
   const imageUrl = req.file
-    ? `/uploads/recipes/${req.file.filename}`
+    ? req.file.location // ✅ S3 public URL
     : req.body.imageUrl || null;
 
   if (!userId || !title || !ingredients || !steps) {
@@ -82,7 +92,7 @@ exports.getRecentCustomRecipes = async (req, res) => {
 
     const recipes = rows.map((r) => ({
       ...r,
-      imageUrl: r.imageUrl ? `${BASE_URL}${r.imageUrl}` : null,
+      imageUrl: r.imageUrl || null,
     }));
 
     res.json(recipes);
@@ -101,12 +111,7 @@ exports.getCustomRecipeById = async (req, res) => {
     );
     if (!recipe) return res.status(404).json({ message: "Not found" });
 
-    // ✅ Add full URL for image
-    recipe.imageUrl = recipe.imageUrl
-      ? recipe.imageUrl.startsWith("http")
-        ? recipe.imageUrl // already full URL
-        : `${BASE_URL}${recipe.imageUrl}` // stored relative
-      : null;
+    recipe.imageUrl = recipe.imageUrl || null;
 
     const [ingredients] = await db.query(
       "SELECT id, ingredient, quantity, unit FROM customrecipeingredient WHERE custRecipId = ?",
@@ -135,27 +140,12 @@ exports.getCustomRecipeById = async (req, res) => {
 };
 exports.updateCustomRecipe = async (req, res) => {
   const recipeId = req.params.id;
-
   let { title, recipeDescription, serving, ingredients, steps, notes, userId } =
-    req.body; // use let instead of const
-
-  console.log("🔹 Incoming update request:", {
-    recipeId,
-    title,
-    recipeDescription,
-    serving,
-    notes,
-    ingredients,
-    steps,
-  });
+    req.body;
 
   try {
-    if (typeof ingredients === "string") {
-      ingredients = JSON.parse(ingredients);
-    }
-    if (typeof steps === "string") {
-      steps = JSON.parse(steps);
-    }
+    if (typeof ingredients === "string") ingredients = JSON.parse(ingredients);
+    if (typeof steps === "string") steps = JSON.parse(steps);
   } catch (err) {
     console.error("❌ JSON parse error:", err);
     return res
@@ -163,32 +153,47 @@ exports.updateCustomRecipe = async (req, res) => {
       .json({ message: "Invalid ingredients/steps format" });
   }
 
-  const imageUrl = req.file ? `/uploads/recipes/${req.file.filename}` : null;
   const conn = await db.getConnection();
   await conn.beginTransaction();
 
   try {
-    // --- RECIPE ---
-    console.log("🔹 Updating main recipe...");
-
-    // get existing recipe
+    // Fetch existing recipe (to check old image)
     const [[existingRecipe]] = await conn.query(
       "SELECT imageUrl FROM customrecipe WHERE id = ?",
       [recipeId]
     );
 
-    let finalImageUrl = existingRecipe?.imageUrl || null;
-    if (imageUrl) {
-      if (existingRecipe?.imageUrl) {
-        const oldPath = path.join(__dirname, "../..", existingRecipe.imageUrl); // ✅ fixed path
-        fs.unlink(oldPath, (err) => {
-          if (err) console.warn("Could not delete old image:", err.message);
-        });
-      }
-      finalImageUrl = imageUrl;
+    if (!existingRecipe) {
+      await conn.rollback();
+      return res.status(404).json({ message: "Recipe not found" });
     }
 
-    const [result] = await conn.query(
+    let finalImageUrl = existingRecipe.imageUrl || null;
+
+    // If new image uploaded, update & delete old one
+    if (req.file) {
+      finalImageUrl = req.file.location;
+
+      if (
+        existingRecipe.imageUrl &&
+        existingRecipe.imageUrl.includes(process.env.AWS_S3_BUCKET)
+      ) {
+        try {
+          const key = existingRecipe.imageUrl.split(".com/")[1];
+          await s3.send(
+            new DeleteObjectCommand({
+              Bucket: process.env.AWS_S3_BUCKET,
+              Key: key,
+            })
+          );
+        } catch (err) {
+          console.warn("⚠️ Could not delete old image from S3:", err.message);
+        }
+      }
+    }
+
+    // --- Update main recipe ---
+    await conn.query(
       "UPDATE customrecipe SET title = ?, recipeDescription = ?, serving = ?, notes = ?, imageUrl = ? WHERE id = ?",
       [
         title,
@@ -200,14 +205,7 @@ exports.updateCustomRecipe = async (req, res) => {
       ]
     );
 
-    if (result.affectedRows === 0) {
-      await conn.rollback();
-      console.warn("⚠️ Recipe not found:", recipeId);
-      return res.status(404).json({ message: "Recipe not found" });
-    }
-
-    // --- INGREDIENTS ---
-    console.log("🔹 Syncing ingredients...");
+    // --- Sync ingredients ---
     const [existingIngredients] = await conn.query(
       "SELECT id FROM customrecipeingredient WHERE custRecipId = ?",
       [recipeId]
@@ -217,27 +215,22 @@ exports.updateCustomRecipe = async (req, res) => {
       .map((i) => i.id);
     const existingIngIds = existingIngredients.map((i) => i.id);
 
-    // Delete removed
     const toDeleteIng = existingIngIds.filter(
       (id) => !incomingIngIds.includes(id)
     );
     if (toDeleteIng.length > 0) {
-      console.log("   Deleting ingredients:", toDeleteIng);
       await conn.query("DELETE FROM customrecipeingredient WHERE id IN (?)", [
         toDeleteIng,
       ]);
     }
 
-    // Insert / update ingredients
     for (let ing of ingredients || []) {
       if (ing.id) {
-        console.log("   Updating ingredient:", ing);
         await conn.query(
           "UPDATE customrecipeingredient SET ingredient = ?, quantity = ?, unit = ? WHERE id = ?",
           [ing.ingredient, ing.quantity, ing.unit || null, ing.id]
         );
       } else {
-        console.log("   Inserting new ingredient:", ing);
         await conn.query(
           "INSERT INTO customrecipeingredient (userId, custRecipId, ingredient, quantity, unit) VALUES (?, ?, ?, ?, ?)",
           [userId, recipeId, ing.ingredient, ing.quantity, ing.unit || null]
@@ -245,23 +238,14 @@ exports.updateCustomRecipe = async (req, res) => {
       }
     }
 
-    // --- STEPS (wipe & reinsert) ---
-    console.log("🔹 Replacing steps...");
-
-    // Always clear existing steps
+    // --- Replace steps ---
     await conn.query("DELETE FROM customrecipestep WHERE custRecipId = ?", [
       recipeId,
     ]);
-
-    // Re-insert from scratch with new order
     for (let i = 0; i < (steps || []).length; i++) {
       const description =
         typeof steps[i] === "string" ? steps[i] : steps[i]?.description;
-
-      if (!description || !description.trim()) {
-        console.log("   Skipping empty step at index", i);
-        continue;
-      }
+      if (!description?.trim()) continue;
 
       await conn.query(
         "INSERT INTO customrecipestep (userId, custRecipId, stepNumber, description) VALUES (?, ?, ?, ?)",
@@ -270,8 +254,31 @@ exports.updateCustomRecipe = async (req, res) => {
     }
 
     await conn.commit();
-    console.log("✅ Recipe updated successfully!");
-    res.json({ message: "Recipe updated successfully" });
+
+    // --- Return the full updated recipe ---
+    const [[recipe]] = await conn.query(
+      "SELECT * FROM customrecipe WHERE id = ?",
+      [recipeId]
+    );
+    const [ingredientsRows] = await conn.query(
+      "SELECT id, ingredient, quantity, unit FROM customrecipeingredient WHERE custRecipId = ?",
+      [recipeId]
+    );
+    const [stepsRows] = await conn.query(
+      "SELECT id, stepNumber, description FROM customrecipestep WHERE custRecipId = ? ORDER BY stepNumber ASC",
+      [recipeId]
+    );
+
+    res.json({
+      id: recipe.id,
+      title: recipe.title,
+      recipeDescription: recipe.recipeDescription,
+      serving: recipe.serving,
+      notes: recipe.notes,
+      image: recipe.imageUrl,
+      ingredients: ingredientsRows,
+      steps: stepsRows,
+    });
   } catch (err) {
     await conn.rollback();
     console.error("❌ Error updating recipe:", err);
@@ -281,28 +288,59 @@ exports.updateCustomRecipe = async (req, res) => {
   }
 };
 
-// Delete a custom recipe
+// Delete a custom recipe// Delete a custom recipe
 exports.deleteCustomRecipe = async (req, res) => {
   const recipeId = req.params.id;
   const conn = await db.getConnection();
   await conn.beginTransaction();
 
   try {
-    // delete steps first
+    // 🔎 Get recipe to check for image cleanup
+    const [[recipe]] = await conn.query(
+      "SELECT imageUrl FROM customrecipe WHERE id = ?",
+      [recipeId]
+    );
+
+    if (!recipe) {
+      await conn.rollback();
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    // 🗑️ Delete steps
     await conn.query("DELETE FROM customrecipestep WHERE custRecipId = ?", [
       recipeId,
     ]);
 
-    // delete ingredients
+    // 🗑️ Delete ingredients
     await conn.query(
       "DELETE FROM customrecipeingredient WHERE custRecipId = ?",
       [recipeId]
     );
 
-    // delete main recipe
+    // 🗑️ Delete main recipe
     const [result] = await conn.query("DELETE FROM customrecipe WHERE id = ?", [
       recipeId,
     ]);
+
+    // 🖼️ If recipe had an S3 image, delete from bucket
+    if (
+      recipe.imageUrl &&
+      recipe.imageUrl.includes(process.env.AWS_S3_BUCKET)
+    ) {
+      try {
+        const key = recipe.imageUrl.split(".com/")[1]; // extract "recipes/filename.jpg"
+        await s3.send(
+          new DeleteObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: key,
+          })
+        );
+        console.log(`✅ Deleted S3 image: ${key}`);
+      } catch (err) {
+        console.warn("⚠️ Could not delete S3 image:", err.message);
+        // Don’t rollback just for S3 cleanup failure
+      }
+    }
 
     await conn.commit();
 
@@ -310,7 +348,7 @@ exports.deleteCustomRecipe = async (req, res) => {
       return res.status(404).json({ message: "Recipe not found" });
     }
 
-    res.json({ message: "Recipe deleted successfully" });
+    res.json({ message: "Recipe and associated image deleted successfully" });
   } catch (err) {
     await conn.rollback();
     console.error("❌ Error deleting recipe:", err);

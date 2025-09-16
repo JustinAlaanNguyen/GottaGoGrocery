@@ -20,6 +20,11 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
+    "/home": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/home.js"
+    ],
     "/recipes/saved-recipes": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
@@ -34,16 +39,6 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/saved-searched-recipes/[id]/grocery-list.js"
-    ],
-    "/search-recipe": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/search-recipe.js"
-    ],
-    "/search-recipes/[id]": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/search-recipes/[id].js"
     ]
   },
   "ampFirstPages": []

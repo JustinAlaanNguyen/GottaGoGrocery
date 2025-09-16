@@ -5,6 +5,15 @@ const crypto = require("crypto");
 const { Resend } = require("resend");
 const resend = new Resend(process.env.RESEND_API_KEY);
 const JWT_SECRET = process.env.JWT_SECRET;
+const SERVER_URL = process.env.SERVER_URL || "http://localhost:5000";
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
+// Helper: return UTC datetime string for MySQL
+function utcDate(hoursAhead = 0) {
+  const d = new Date();
+  d.setUTCHours(d.getUTCHours() + hoursAhead);
+  return d.toISOString().slice(0, 19).replace("T", " ");
+}
 
 exports.signup = async (req, res) => {
   const { email, username, password } = req.body;
@@ -14,7 +23,9 @@ exports.signup = async (req, res) => {
   }
 
   try {
-    const [existing] = await db.query("SELECT id FROM user WHERE email = ?", [email]);
+    const [existing] = await db.query("SELECT id FROM user WHERE email = ?", [
+      email,
+    ]);
     if (existing.length > 0) {
       return res.status(400).json({ message: "Email already in use." });
     }
@@ -23,15 +34,21 @@ exports.signup = async (req, res) => {
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationExpires = new Date(Date.now() + 1000 * 60 * 60); // 1h
+    const verificationExpires = utcDate(1); // 1h in UTC
 
     await db.query(
       "INSERT INTO user (email, username, passwordHash, verificationToken, verificationExpires) VALUES (?, ?, ?, ?, ?)",
-      [email.trim(), username, passwordHash, verificationToken, verificationExpires]
+      [
+        email.trim(),
+        username,
+        passwordHash,
+        verificationToken,
+        verificationExpires,
+      ]
     );
 
-    // Send verification email
-    const verificationUrl = `http://localhost:3000/account/verify?token=${verificationToken}`;
+    // Use CLIENT_URL (frontend) so link points to React app
+    const verificationUrl = `${CLIENT_URL}/account/verify?token=${verificationToken}`;
 
     await resend.emails.send({
       from: process.env.MAIL_FROM,
@@ -47,9 +64,11 @@ exports.signup = async (req, res) => {
       `,
     });
 
-    res.status(201).json({ message: "Account created! Please verify your email." });
+    res
+      .status(201)
+      .json({ message: "Account created! Please verify your email." });
   } catch (err) {
-    console.error(err);
+    console.error("Signup error:", err);
     res.status(500).json({ message: "Something went wrong." });
   }
 };
@@ -58,7 +77,9 @@ exports.signin = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const [rows] = await db.query("SELECT * FROM user WHERE email = ?", [email.trim()]);
+    const [rows] = await db.query("SELECT * FROM user WHERE email = ?", [
+      email.trim(),
+    ]);
     if (rows.length === 0) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
@@ -66,7 +87,9 @@ exports.signin = async (req, res) => {
     const user = rows[0];
 
     if (!user.isVerified) {
-      return res.status(403).json({ error: "Please verify your email before logging in." });
+      return res
+        .status(403)
+        .json({ error: "Please verify your email before logging in." });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
@@ -88,13 +111,13 @@ exports.signin = async (req, res) => {
   }
 };
 
-
 exports.verifyEmail = async (req, res) => {
-  const { token } = req.body; // 👈 changed from req.query
+  const { token } = req.body;
 
   try {
+    // Always compare against UTC
     const [rows] = await db.query(
-      "SELECT * FROM user WHERE verificationToken = ? AND verificationExpires > NOW()",
+      "SELECT * FROM user WHERE verificationToken = ? AND verificationExpires > UTC_TIMESTAMP()",
       [token]
     );
 
@@ -111,7 +134,7 @@ exports.verifyEmail = async (req, res) => {
 
     res.json({ message: "Email verified successfully! You can now sign in." });
   } catch (err) {
-    console.error(err);
+    console.error("Verification error:", err);
     res.status(500).json({ message: "Something went wrong." });
   }
 };

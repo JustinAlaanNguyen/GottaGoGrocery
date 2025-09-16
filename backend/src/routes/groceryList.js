@@ -154,11 +154,20 @@ router.post("/sms", async (req, res) => {
     // format the grocery list
     const listText = items
       .map((i) => {
-        const qty = normalizeForSms(i.quantity || "");
-        const unit = normalizeForSms(i.unit || "");
-        const ingredient = normalizeForSms(i.ingredient || "");
+        let baseIngredient;
+
+        if (i.isCustom) {
+          // Custom recipe → structured fields
+          baseIngredient = `${i.quantity ? i.quantity + " " : ""}${
+            i.unit ? i.unit + " " : ""
+          }${normalizeForSms(i.ingredient || "")}`;
+        } else {
+          // Saved recipe → ingredient already formatted
+          baseIngredient = normalizeForSms(i.ingredient || "");
+        }
+
         const note = i.note ? ` (${normalizeForSms(i.note)})` : "";
-        return `- ${qty} ${unit} ${ingredient}${note}`;
+        return `- ${baseIngredient}${note}`;
       })
       .join("\n");
 

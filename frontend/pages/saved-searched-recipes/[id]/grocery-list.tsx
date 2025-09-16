@@ -115,6 +115,18 @@ export default function GroceryListPage() {
     (ing) => !ing.checked && !ing.crossed
   );
 
+  // ✅ Format helper to avoid duplicates
+  function formatIngredient(ing: IngredientState) {
+    // If the raw ingredient text already has numbers (fractions, etc.), trust it
+    if (/\d/.test(ing.ingredient)) {
+      return ing.ingredient.trim();
+    }
+    // Otherwise, build from structured fields
+    return `${ing.quantity ? ing.quantity + " " : ""}${
+      ing.unit ? ing.unit + " " : ""
+    }${ing.ingredient}`;
+  }
+
   async function handleEmailClick() {
     if (neededIngredients.length === 0) {
       toast({ status: "info", title: "No items to email" });
@@ -135,7 +147,7 @@ export default function GroceryListPage() {
         recipeId: id,
         recipeTitle,
         items: neededIngredients.map((i) => ({
-          ingredient: i.ingredient,
+          ingredient: formatIngredient(i),
           quantity: i.quantity || "",
           unit: i.unit || "",
           note: i.note || "",
@@ -183,7 +195,7 @@ export default function GroceryListPage() {
         recipeId: id,
         recipeTitle,
         items: neededIngredients.map((i) => ({
-          ingredient: String(i.ingredient || ""),
+          ingredient: formatIngredient(i),
           quantity: String(i.quantity || ""),
           unit: String(i.unit || ""),
           note: String(i.note || ""),
@@ -248,7 +260,7 @@ export default function GroceryListPage() {
           <Flex
             align="flex-start"
             gap={8}
-            direction={{ base: "column", md: "row" }} // ✅ stack on mobile
+            direction={{ base: "column", md: "row" }}
           >
             {/* LEFT COLUMN: Ingredients */}
             <Box flex="1" w="100%">
@@ -258,7 +270,7 @@ export default function GroceryListPage() {
               <VStack
                 align="stretch"
                 spacing={4}
-                maxH={{ base: "none", md: "600px" }} // ✅ scroll only on desktop
+                maxH={{ base: "none", md: "600px" }}
                 overflowY={{ base: "visible", md: "auto" }}
                 pr={{ base: 0, md: 2 }}
               >
@@ -282,7 +294,7 @@ export default function GroceryListPage() {
                         justify="space-between"
                         align="start"
                         spacing={2}
-                        wrap="wrap" // ✅ prevent overlap on small screens
+                        wrap="wrap"
                       >
                         <Checkbox
                           colorScheme="green"
@@ -297,9 +309,7 @@ export default function GroceryListPage() {
                             fontWeight="medium"
                             color={ing.crossed ? "gray.500" : "black"}
                           >
-                            {ing.quantity ? `${ing.quantity} ` : ""}
-                            {ing.unit ? `${ing.unit} ` : ""}
-                            {ing.ingredient}
+                            {formatIngredient(ing)}
                           </Text>
                           {ing.isCustom && (
                             <Badge ml={2} colorScheme="yellow">
@@ -387,9 +397,7 @@ export default function GroceryListPage() {
                             transform: "translateX(5px)",
                           }}
                         >
-                          • {ing.quantity ? `${ing.quantity} ` : ""}
-                          {ing.unit ? `${ing.unit} ` : ""}
-                          {ing.ingredient}
+                          • {formatIngredient(ing)}
                           {ing.isCustom && (
                             <Text as="span" color="yellow.600">
                               {" "}
@@ -417,7 +425,7 @@ export default function GroceryListPage() {
                 </CardBody>
               </Card>
               <VStack spacing={4}>
-                {/* Placeholder Email button */}
+                {/* Email button */}
                 <Button
                   size="md"
                   w="100%"
@@ -436,7 +444,7 @@ export default function GroceryListPage() {
                   📧 Email me this grocery list
                 </Button>
 
-                {/* Placeholder SMS button */}
+                {/* SMS button */}
                 <Button
                   size="md"
                   w="100%"

@@ -16,12 +16,12 @@ import {
   Grid,
   GridItem,
   Image,
+  useToast,
 } from "@chakra-ui/react";
-import { useToast } from "@chakra-ui/react";
 
 type Ingredient = {
   id: number;
-  original: string; // Spoonacular gives full string like "1 cup sugar"
+  original: string;
 };
 
 type Step = {
@@ -30,7 +30,7 @@ type Step = {
 };
 
 type RecipeDetails = {
-  sourceUrl: any;
+  sourceUrl: string;
   id: number;
   title: string;
   image: string;
@@ -87,11 +87,11 @@ export default function SpoonacularRecipeDetails() {
   return (
     <Box bg="#ccd5ae" minH="100vh">
       <Navbar />
-      <Flex justify="center" px={4} py={10}>
+      <Flex justify="center" px={{ base: 2, md: 4 }} py={{ base: 6, md: 10 }}>
         <Box
           bg="white"
           borderRadius="2xl"
-          p={10}
+          p={{ base: 4, md: 10 }}
           w="100%"
           maxW="900px"
           boxShadow="lg"
@@ -103,7 +103,8 @@ export default function SpoonacularRecipeDetails() {
                 src={recipe.image}
                 alt={recipe.title}
                 borderRadius="lg"
-                maxH="400px"
+                w="100%"
+                maxH={{ base: "250px", md: "400px" }}
                 objectFit="cover"
                 boxShadow="md"
               />
@@ -113,23 +114,31 @@ export default function SpoonacularRecipeDetails() {
           {/* Title */}
           <Heading
             as="h1"
-            fontSize="3xl"
-            mb={2}
+            fontSize={{ base: "2xl", md: "3xl" }}
+            mb={4}
             textAlign="center"
             color="#344e41"
+            wordBreak="break-word"
           >
             {recipe.title}
           </Heading>
+
+          {/* Summary */}
           <Text
-            fontSize="lg"
+            fontSize={{ base: "sm", md: "lg" }}
             mb={6}
             textAlign="center"
             dangerouslySetInnerHTML={{ __html: recipe.summary }}
+            wordBreak="break-word"
           />
 
           {/* Meta Info */}
-          <Flex justify="center" gap={8} mb={8} flexWrap="wrap">
-            <Text color="#d4a373" fontWeight="medium">
+          <Flex justify="center" gap={6} mb={8} flexWrap="wrap">
+            <Text
+              color="#d4a373"
+              fontWeight="medium"
+              fontSize={{ base: "sm", md: "md" }}
+            >
               Servings: {recipe.servings}
             </Text>
           </Flex>
@@ -139,28 +148,40 @@ export default function SpoonacularRecipeDetails() {
           {/* Ingredients + Instructions */}
           <Grid
             templateColumns={{ base: "1fr", md: "1fr 2fr" }}
-            gap={10}
+            gap={{ base: 6, md: 10 }}
             alignItems="start"
           >
             {/* Ingredients */}
             <GridItem
               bg="#ccd5ae"
               borderRadius="md"
-              p={6}
+              p={{ base: 4, md: 6 }}
               border="1px solid #e9edc9"
             >
-              <Heading as="h2" fontSize="2xl" mb={4} color="#344e41">
+              <Heading
+                as="h2"
+                fontSize={{ base: "xl", md: "2xl" }}
+                mb={4}
+                color="#344e41"
+              >
                 Ingredients
               </Heading>
               <VStack align="start" spacing={3}>
                 {recipe.extendedIngredients?.length > 0 ? (
                   recipe.extendedIngredients.map((ing) => (
-                    <Text key={ing.id} color="gray.800">
+                    <Text
+                      key={ing.id}
+                      color="gray.800"
+                      fontSize={{ base: "sm", md: "md" }}
+                      wordBreak="break-word"
+                    >
                       • {ing.original}
                     </Text>
                   ))
                 ) : (
-                  <Text color="gray.500">No ingredients listed.</Text>
+                  <Text fontSize={{ base: "sm", md: "md" }} color="gray.500">
+                    No ingredients listed.
+                  </Text>
                 )}
               </VStack>
             </GridItem>
@@ -169,99 +190,122 @@ export default function SpoonacularRecipeDetails() {
             <GridItem
               bg="#faedcd"
               borderRadius="md"
-              p={6}
+              p={{ base: 4, md: 6 }}
               border="1px solid #e9edc9"
             >
-              <Heading as="h2" fontSize="2xl" mb={4} color="#344e41">
+              <Heading
+                as="h2"
+                fontSize={{ base: "xl", md: "2xl" }}
+                mb={4}
+                color="#344e41"
+              >
                 Instructions
               </Heading>
               <VStack align="start" spacing={5}>
                 {recipe.analyzedInstructions?.[0]?.steps?.length > 0 ? (
                   recipe.analyzedInstructions[0].steps.map((step) => (
                     <Box key={step.number}>
-                      <Text fontWeight="bold" mb={1}>
+                      <Text
+                        fontWeight="bold"
+                        mb={1}
+                        fontSize={{ base: "sm", md: "md" }}
+                      >
                         Step {step.number}
                       </Text>
-                      <Text color="gray.800">{step.step}</Text>
+                      <Text
+                        color="gray.800"
+                        fontSize={{ base: "sm", md: "md" }}
+                        wordBreak="break-word"
+                      >
+                        {step.step}
+                      </Text>
                     </Box>
                   ))
                 ) : (
-                  <Text color="gray.500">No steps listed.</Text>
+                  <Text fontSize={{ base: "sm", md: "md" }} color="gray.500">
+                    No steps listed.
+                  </Text>
                 )}
               </VStack>
             </GridItem>
-
-            <Flex justify="center" gap={4} mt={10}>
-              <Button
-                size="lg"
-                bg="#d4a373"
-                color="white"
-                _hover={{ bg: "#ccd5ae", color: "black" }}
-                onClick={() => router.back()}
-              >
-                ⬅ Go Back
-              </Button>
-
-              <Button
-                size="lg"
-                bg="#344e41"
-                color="white"
-                _hover={{ bg: "#ccd5ae", color: "black" }}
-                onClick={async () => {
-                  try {
-                    const storedUser = localStorage.getItem("user");
-                    if (!storedUser) {
-                      toast({
-                        status: "warning",
-                        title: "Please sign in first.",
-                      });
-                      router.push("/account/signin");
-                      return;
-                    }
-
-                    const user = JSON.parse(storedUser);
-
-                    await axios.post(
-                      "http://localhost:5000/api/saved-recipes/save",
-                      {
-                        userId: user.id,
-                        recipeApiId: recipe.id,
-                        recipeLink: recipe.sourceUrl,
-                        title: recipe.title,
-                        image: recipe.image,
-                      }
-                    );
-
-                    toast({
-                      status: "success",
-                      title: "Recipe saved successfully! 💾",
-                      description: `${recipe.title} was added to your saved recipes.`,
-                      duration: 3000,
-                      isClosable: true,
-                    });
-
-                    // ✅ Give toast time to show before redirect
-                    setTimeout(() => {
-                      router.push(
-                        "http://localhost:3000/recipes/saved-recipes"
-                      );
-                    }, 1500);
-                  } catch (err) {
-                    console.error("Error saving recipe", err);
-                    toast({
-                      status: "error",
-                      title: "Failed to save recipe",
-                      description: "Please try again later.",
-                      duration: 3000,
-                      isClosable: true,
-                    });
-                  }
-                }}
-              >
-                💾 Save This Recipe
-              </Button>
-            </Flex>
           </Grid>
+
+          <Divider borderColor="#e9edc9" my={10} />
+
+          {/* Buttons */}
+          <Flex
+            direction={{ base: "column", sm: "row" }}
+            justify="center"
+            gap={4}
+          >
+            <Button
+              size={{ base: "md", md: "lg" }}
+              bg="#d4a373"
+              color="white"
+              _hover={{ bg: "#ccd5ae", color: "black" }}
+              onClick={() => router.back()}
+              w={{ base: "100%", sm: "auto" }}
+            >
+              ⬅ Go Back
+            </Button>
+
+            <Button
+              size={{ base: "md", md: "lg" }}
+              bg="#344e41"
+              color="white"
+              _hover={{ bg: "#ccd5ae", color: "black" }}
+              onClick={async () => {
+                try {
+                  const storedUser = localStorage.getItem("user");
+                  if (!storedUser) {
+                    toast({
+                      status: "warning",
+                      title: "Please sign in first.",
+                    });
+                    router.push("/account/signin");
+                    return;
+                  }
+
+                  const user = JSON.parse(storedUser);
+
+                  await axios.post(
+                    "http://localhost:5000/api/saved-recipes/save",
+                    {
+                      userId: user.id,
+                      recipeApiId: recipe.id,
+                      recipeLink: recipe.sourceUrl,
+                      title: recipe.title,
+                      image: recipe.image,
+                    }
+                  );
+
+                  toast({
+                    status: "success",
+                    title: "Recipe saved successfully! 💾",
+                    description: `${recipe.title} was added to your saved recipes.`,
+                    duration: 3000,
+                    isClosable: true,
+                  });
+
+                  setTimeout(() => {
+                    router.push("http://localhost:3000/recipes/saved-recipes");
+                  }, 1500);
+                } catch (err) {
+                  console.error("Error saving recipe", err);
+                  toast({
+                    status: "error",
+                    title: "Failed to save recipe",
+                    description: "Please try again later.",
+                    duration: 3000,
+                    isClosable: true,
+                  });
+                }
+              }}
+              w={{ base: "100%", sm: "auto" }}
+            >
+              💾 Save This Recipe
+            </Button>
+          </Flex>
         </Box>
       </Flex>
     </Box>
