@@ -48,6 +48,15 @@ export default function GroceryListPage() {
   const toast = useToast();
   const [sendingEmail, setSendingEmail] = useState(false);
 
+  function formatIngredient(i: IngredientState) {
+    if (/\d/.test(i.ingredient)) {
+      return i.ingredient.trim(); // already formatted
+    }
+    return `${i.quantity ? i.quantity + " " : ""}${i.unit ? i.unit + " " : ""}${
+      i.ingredient
+    }`;
+  }
+
   async function handleEmailClick() {
     if (neededIngredients.length === 0) {
       toast({ status: "info", title: "No items to email" });
@@ -68,7 +77,7 @@ export default function GroceryListPage() {
         recipeId: id,
         recipeTitle,
         items: neededIngredients.map((i) => ({
-          ingredient: i.ingredient,
+          ingredient: formatIngredient(i),
           quantity: i.quantity || "",
           unit: i.unit || "",
           note: i.note || "",
@@ -112,7 +121,7 @@ export default function GroceryListPage() {
         recipeId: id,
         recipeTitle,
         items: neededIngredients.map((i) => ({
-          ingredient: i.ingredient,
+          ingredient: formatIngredient(i),
           quantity: i.quantity || "",
           unit: i.unit || "",
           note: i.note || "",
