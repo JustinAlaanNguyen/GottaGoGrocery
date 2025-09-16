@@ -5,8 +5,8 @@ const crypto = require("crypto");
 const { Resend } = require("resend");
 const resend = new Resend(process.env.RESEND_API_KEY);
 const JWT_SECRET = process.env.JWT_SECRET;
-const SERVER_URL = process.env.SERVER_URL || "http://localhost:5000";
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+//const SERVER_URL = process.env.SERVER_URL;
+const CLIENT_URL = process.env.CLIENT_URL;
 
 // Helper: return UTC datetime string for MySQL
 function utcDate(hoursAhead = 0) {
