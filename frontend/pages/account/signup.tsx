@@ -342,7 +342,7 @@ const Signup = (): React.ReactElement => {
                   loadingText="Signing up"
                   isDisabled={isSubmitting}
                 >
-                  Sign Up
+                  Create Account
                 </Button>
               </MotionBox>
 
