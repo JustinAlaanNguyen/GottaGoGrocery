@@ -354,7 +354,7 @@ export default function CreateCustomRecipePage() {
           <Flex gap={2} mb={4}>
             <Input
               fontStyle={"italic"}
-              placeholder="Paste recipe link here..."
+              placeholder="Put link here..."
               value={recipeUrl}
               onChange={(e) => setRecipeUrl(e.target.value)}
               bg="white"

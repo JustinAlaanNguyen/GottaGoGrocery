@@ -154,7 +154,7 @@ export default function GroceryListPage() {
             checked: false,
             crossed: false,
             note: "",
-            isCustom: true,
+            isCustom: false,
           }))
         );
       } catch (err) {
