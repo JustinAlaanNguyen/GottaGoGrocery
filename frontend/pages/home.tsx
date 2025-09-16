@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import { FaExclamationCircle } from "react-icons/fa";
 import { Icon } from "@chakra-ui/react";
+import { ElementType } from "react";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -282,7 +283,7 @@ export default function UserHome() {
                                 }}
                               >
                                 <Icon
-                                  as={FaExclamationCircle}
+                                  as={FaExclamationCircle as ElementType}
                                   color="#d9534f"
                                   boxSize={5}
                                 />
