@@ -1,5 +1,5 @@
 const db = require("../config/db"); // Adjust path to your DB connection
-const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
+const BASE_URL = process.env.BASE_URL;
 const fs = require("fs");
 const path = require("path");
 

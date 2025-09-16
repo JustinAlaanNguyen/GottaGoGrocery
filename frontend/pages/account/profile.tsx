@@ -55,7 +55,9 @@ export default function ProfilePage() {
     const parsed = JSON.parse(storedUser);
 
     axios
-      .get(`http://localhost:5000/api/user/profile/${parsed.id}`)
+      .get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/profile/${parsed.id}`
+      )
       .then((res) => {
         setProfile(res.data);
         setFormData({
@@ -108,7 +110,7 @@ export default function ProfilePage() {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/user/profile/${profile.id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/profile/${profile.id}`,
         formData
       );
       toast({ title: "Profile updated!", status: "success" });
@@ -319,7 +321,7 @@ export default function ProfilePage() {
                       onClick={async () => {
                         try {
                           await axios.post(
-                            "http://localhost:5000/api/user/phone/send",
+                            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/phone/send`,
                             {
                               phone: formData.phone,
                             }
@@ -359,7 +361,7 @@ export default function ProfilePage() {
                         onClick={async () => {
                           try {
                             await axios.post(
-                              "http://localhost:5000/api/user/phone/confirm",
+                              `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/phone/confirm`,
                               {
                                 phone: formData.phone,
                                 code: verificationCode,

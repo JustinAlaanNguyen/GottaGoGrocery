@@ -80,7 +80,7 @@ export default function UserHome() {
     if (!userId) return;
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/user/home/${userId}`
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/home/${userId}`
       );
       const data = res.data;
 

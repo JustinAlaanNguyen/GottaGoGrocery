@@ -13,7 +13,9 @@ export default function Verify() {
   useEffect(() => {
     if (token) {
       axios
-        .post("http://localhost:5000/api/auth/verify", { token })
+        .post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/verify`, {
+          token,
+        })
         .then((res) => setMessage(res.data.message))
         .catch((err) =>
           setMessage(err.response?.data?.message || "Verification failed.")

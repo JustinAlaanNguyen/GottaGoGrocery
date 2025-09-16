@@ -128,11 +128,14 @@ const Signup = (): React.ReactElement => {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/signup", {
-        email: trimmedEmail,
-        username: trimmedUsername,
-        password,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/signup`,
+        {
+          email: trimmedEmail,
+          username: trimmedUsername,
+          password,
+        }
+      );
 
       setSuccess(true);
       setMessage(

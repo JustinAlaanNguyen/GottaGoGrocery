@@ -269,7 +269,7 @@ export default function SpoonacularRecipeDetails() {
                   const user = JSON.parse(storedUser);
 
                   await axios.post(
-                    "http://localhost:5000/api/saved-recipes/save",
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/saved-recipes/save`,
                     {
                       userId: user.id,
                       recipeApiId: recipe.id,
@@ -288,7 +288,9 @@ export default function SpoonacularRecipeDetails() {
                   });
 
                   setTimeout(() => {
-                    router.push("http://localhost:3000/recipes/saved-recipes");
+                    router.push(
+                      `${process.env.NEXT_PUBLIC_API_BASE_URL}/recipes/saved-recipes`
+                    );
                   }, 1500);
                 } catch (err) {
                   console.error("Error saving recipe", err);

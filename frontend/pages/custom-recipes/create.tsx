@@ -255,9 +255,13 @@ export default function CreateCustomRecipePage() {
       formData.append("imageUrl", imagePreview);
     }
 
-    await axios.post("http://localhost:5000/api/custom-recipes", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    await axios.post(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-recipes`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
 
     toast({ status: "success", title: "Recipe created!" });
     router.push("/recipes/saved-recipes");
@@ -271,7 +275,7 @@ export default function CreateCustomRecipePage() {
     try {
       setIsExtracting(true);
       const res = await axios.post(
-        "http://localhost:5000/api/custom-recipes/extract",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-recipes/extract`,
         { url: recipeUrl }
       );
       const data = res.data;

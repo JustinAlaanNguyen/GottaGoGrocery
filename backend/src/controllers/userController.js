@@ -7,7 +7,7 @@ const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
-const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
+const BASE_URL = process.env.BASE_URL;
 
 exports.getUserHome = async (req, res) => {
   const userId = req.params.id;

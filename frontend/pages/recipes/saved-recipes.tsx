@@ -53,7 +53,7 @@ export default function SavedRecipesPage() {
     async function fetchData() {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/user/recipes/${user.id}`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/recipes/${user.id}`
         );
         setRecipes(res.data || []);
       } catch (err) {

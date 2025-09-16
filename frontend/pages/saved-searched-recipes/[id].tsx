@@ -42,7 +42,7 @@ export default function SavedRecipeDetails() {
     const fetchRecipe = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/saved-recipes/${id}`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/saved-recipes/${id}`
         );
         setRecipe(res.data);
       } catch (error) {
@@ -77,7 +77,9 @@ export default function SavedRecipeDetails() {
     if (!window.confirm("Are you sure you want to delete this recipe?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/saved-recipes/${id}`);
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/saved-recipes/${id}`
+      );
       router.push("/recipes/saved-recipes");
     } catch (error) {
       console.error("Error deleting recipe:", error);

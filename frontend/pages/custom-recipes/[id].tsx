@@ -56,7 +56,7 @@ export default function CustomRecipeDetails() {
     const fetchRecipe = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/custom-recipes/${id}`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-recipes/${id}`
         );
 
         const data = res.data;

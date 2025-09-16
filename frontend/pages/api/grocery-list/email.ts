@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // forward request to backend
-    const response = await axios.post("http://localhost:5000/api/grocery-list/email", req.body);
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/grocery-list/email`, req.body);
     res.status(response.status).json(response.data);
   } catch (error: any) {
     console.error("Proxy error:", error.response?.data || error.message);

@@ -93,10 +93,13 @@ const SignIn = (): React.ReactElement => {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/signin", {
-        email,
-        password,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/signin`,
+        {
+          email,
+          password,
+        }
+      );
 
       const { token, user } = res.data;
       localStorage.setItem("token", token);

@@ -149,7 +149,7 @@ export default function EditCustomRecipePage() {
     const fetchRecipe = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/custom-recipes/${params.id}`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-recipes/${params.id}`
         );
         const data = res.data;
         setPreview(data.image || null);
@@ -228,7 +228,7 @@ export default function EditCustomRecipePage() {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/custom-recipes/${params.id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-recipes/${params.id}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -494,7 +494,7 @@ export default function EditCustomRecipePage() {
                 }
                 try {
                   await axios.delete(
-                    `http://localhost:5000/api/custom-recipes/${params.id}`
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/custom-recipes/${params.id}`
                   );
                   toast({ status: "success", title: "Recipe deleted" });
                   router.push("/recipes/saved-recipes");

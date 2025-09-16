@@ -54,7 +54,7 @@ export default function GroceryListPage() {
     const fetchGroceryList = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/saved-recipes/${id}/grocery-list`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/saved-recipes/${id}/grocery-list`
         );
         setRecipeTitle(res.data.recipeTitle);
         setIngredients(
@@ -156,7 +156,7 @@ export default function GroceryListPage() {
       };
 
       const res = await axios.post(
-        "http://localhost:5000/api/grocery-list/email",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/grocery-list/email`,
         payload
       );
 
@@ -204,7 +204,7 @@ export default function GroceryListPage() {
       };
 
       const res = await axios.post(
-        "http://localhost:5000/api/grocery-list/sms",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/grocery-list/sms`,
         payload
       );
 
