@@ -309,6 +309,8 @@ export default function SearchRecipe() {
                 bg="white"
                 border="1px solid #e9edc9"
                 whileHover={{ scale: 1.02 }}
+                cursor="pointer"
+                onClick={() => router.push(`/search-recipes/${recipe.id}`)} // 👈 entire card clickable
               >
                 <Image
                   src={recipe.image}
@@ -317,6 +319,8 @@ export default function SearchRecipe() {
                   h="220px"
                   objectFit="cover"
                 />
+
+                {/* Overlay (desktop only) */}
                 <MotionBox
                   initial={{ opacity: 0 }}
                   whileHover={{ opacity: 1 }}
@@ -324,7 +328,7 @@ export default function SearchRecipe() {
                   position="absolute"
                   inset={0}
                   bg="rgba(52, 78, 65, 0.7)"
-                  display="flex"
+                  display={{ base: "none", md: "flex" }} // 👈 hidden on mobile
                   alignItems="center"
                   justifyContent="center"
                 >
@@ -333,11 +337,15 @@ export default function SearchRecipe() {
                     bg="#faedcd"
                     color="#344e41"
                     _hover={{ bg: "white" }}
-                    onClick={() => router.push(`/search-recipes/${recipe.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent firing the card click twice
+                      router.push(`/search-recipes/${recipe.id}`);
+                    }}
                   >
                     View Recipe
                   </Button>
                 </MotionBox>
+
                 <Box p={4}>
                   <Heading size="sm" color="#344e41" noOfLines={1}>
                     {recipe.title}
@@ -364,6 +372,7 @@ export default function SearchRecipe() {
               </MotionBox>
             ))}
           </SimpleGrid>
+
           <Flex justify="center" mt={8}>
             <Button
               onClick={() => handleSearch(true)}
