@@ -34,7 +34,7 @@ exports.signup = async (req, res) => {
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationExpires = utcDate(1); // 1h in UTC
+    const verificationExpires = utcDate(24); // 24h in UTC (1 day)
 
     await db.query(
       "INSERT INTO user (email, username, passwordHash, verificationToken, verificationExpires) VALUES (?, ?, ?, ?, ?)",
