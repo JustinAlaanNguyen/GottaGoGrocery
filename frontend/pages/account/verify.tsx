@@ -22,11 +22,7 @@ export default function Verify() {
 
           // ✅ Redirect if verification succeeded
           if (res.data.success) {
-            setTimeout(() => {
-              window.location.href =
-                "https://www.gottagogrocery.com/account/signin";
-              // Or: router.push("/account/signin") if you want client-side routing
-            }, 1500); // small delay so user sees the success message
+            setTimeout(() => router.push("/account/signin"), 1000);
           }
         })
         .catch((err) =>

@@ -248,6 +248,17 @@ const SignIn = (): React.ReactElement => {
               fontSize={{ base: "lg", md: "2xl" }}
             />
 
+            <ChakraLink
+              as={NextLink}
+              href="/account/forgot-password"
+              color="#3c5b3a"
+              fontSize="md"
+              alignSelf="flex-end"
+              _hover={{ textDecoration: "underline" }}
+            >
+              Forgot Password?
+            </ChakraLink>
+
             <MotionBox
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

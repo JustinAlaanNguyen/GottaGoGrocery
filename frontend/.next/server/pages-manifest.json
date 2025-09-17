@@ -3,6 +3,6 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
-  "/custom-recipes": "pages/custom-recipes.js",
-  "/account/signin": "pages/account/signin.js"
+  "/account/signin": "pages/account/signin.js",
+  "/account/forgot-password": "pages/account/forgot-password.js"
 }

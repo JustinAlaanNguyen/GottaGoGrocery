@@ -3,6 +3,7 @@ import { Box, Button, Flex, Heading, Image, Text } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import NextLink from "next/link";
+import PhoneVideoPlayer from "../components/PhoneVideoPlayer";
 
 const MotionText = motion(Text);
 const MotionBox = motion(Box);
@@ -346,14 +347,9 @@ const HomePage: React.FC = () => {
               boxShadow="xl"
               aspectRatio={9 / 16}
               w="full"
+              bg="black"
             >
-              <Image
-                src="/phonepic2.png"
-                alt="Phone Preview"
-                objectFit="cover"
-                w="100%"
-                h="100%"
-              />
+              <PhoneVideoPlayer />
             </Box>
           </Box>
         </MotionBox>

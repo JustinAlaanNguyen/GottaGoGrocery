@@ -138,3 +138,92 @@ exports.verifyEmail = async (req, res) => {
     res.status(500).json({ message: "Something went wrong." });
   }
 };
+
+// REQUEST PASSWORD RESET
+exports.requestPasswordReset = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email is required" });
+
+  try {
+    const [rows] = await db.query("SELECT * FROM user WHERE email = ?", [
+      email,
+    ]);
+    if (rows.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "If that email exists, a reset link was sent." });
+    }
+
+    const user = rows[0];
+    if (!user.isVerified) {
+      return res
+        .status(403)
+        .json({ message: "Please verify your email first." });
+    }
+
+    // Generate reset token (valid 1 hour)
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await db.query(
+      "UPDATE user SET resetToken = ?, resetExpires = ? WHERE id = ?",
+      [resetToken, resetExpires, user.id]
+    );
+
+    const resetUrl = `${CLIENT_URL}/account/reset-password?token=${resetToken}`;
+
+    await resend.emails.send({
+      from: process.env.MAIL_FROM,
+      to: email,
+      subject: "Reset your GottaGoGrocery password",
+      html: `
+        <h2>Password Reset Request</h2>
+        <p>Click below to reset your password (valid for 1 hour):</p>
+        <a href="${resetUrl}" style="background:#3c5b3a;color:white;padding:10px 20px;border-radius:5px;text-decoration:none;">
+          Reset Password
+        </a>
+      `,
+    });
+
+    res.json({ message: "If that email exists, a reset link was sent." });
+  } catch (err) {
+    console.error("Reset request error:", err);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+// RESET PASSWORD
+exports.resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    return res
+      .status(400)
+      .json({ message: "Token and new password required." });
+  }
+
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM user WHERE resetToken = ? AND resetExpires > UTC_TIMESTAMP()",
+      [token]
+    );
+
+    if (rows.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset link." });
+    }
+
+    const user = rows[0];
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await db.query(
+      "UPDATE user SET passwordHash = ?, resetToken = NULL, resetExpires = NULL WHERE id = ?",
+      [passwordHash, user.id]
+    );
+
+    res.json({ message: "Password reset successful! You can now sign in." });
+  } catch (err) {
+    console.error("Reset error:", err);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+};
